@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="150" src="https://raw.githubusercontent.com/indigo/master/indigo.png">
+  <img height="150" src="https://raw.githubusercontent.com/tobiasrausch/indigo/master/indigo.png">
   <h1 align="center">Indigo</h1>
 </p>
 
