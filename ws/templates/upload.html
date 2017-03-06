@@ -1,0 +1,92 @@
+<html>
+    <head>
+	<title>Indigo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script type="text/javascript" src="static/jquery-3.1.1.min.js"></script>
+	<script type="text/javascript" src="static/bootstrap.min.js"></script>
+	<link type="text/css" href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+	<script>
+	    $(function() {
+	    $(".dropdown-menu li a").click(function() {
+	    $(".btn:first-child").text($(this).text());
+	    $(".btn:first-child").val($(this).text());
+	    });
+	    });
+	</script>
+    </head>
+    <body>
+	<div class="container">
+	    <div class="page-header">
+		<h1>Discovery of InDels in Sanger Chromatograms</h1>
+		<p>Analysis takes a couple of seconds to run, please be patient.</p>
+		<p><a href="https://www-db.embl.de/EMBLPersonGroup-PersonPicture/MailForm/?recipient=CP-60010497">Help</a></p>
+	    </div>
+
+	    <form action = "/upload" method = "POST" enctype = "multipart/form-data">
+		<div class="form-group">
+		    <label for="experiment">Experiment Chromatogram (.ab1)</label>
+		    <br>
+		    <label class="btn btn-default btn-file">
+			<input type="file" name="experiment" id="experiment" hidden />
+		    </label>
+		</div>
+		<p></p>
+		<p></p>
+		<ul class="nav nav-tabs">
+		    <li class="active"><a data-toggle="tab" href="#gindex">Genome Indices</a></li>
+		    <li><a data-toggle="tab" href="#fasta">Single Fasta</a></li>
+		    <li><a data-toggle="tab" href="#wildtype">Wildtype Chromatogram</a></li>
+		</ul>
+		<div class="tab-content">
+		    <div id="gindex" class="tab-pane fade in active">
+			<p></p>
+			<div class="form-group">
+			    <input class="span2" id="genome" name="genome" type="hidden" />
+			    <div class="dropdown">
+				<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Genome 
+				    <span class="caret"></span></button>
+				<ul class="dropdown-menu" role="menu">
+				    <li onclick="$('#genome').val('Danio_rerio.GRCz10.dna.toplevel.fa.gz')"><a href="#">Danio Rerio GRCz10</a></li>
+				    <li onclick="$('#genome').val('Drosophila_melanogaster.BDGP6.dna.toplevel.fa.gz')"><a href="#">D. melanogaster BDGP6</a></li>
+				    <li onclick="$('#genome').val('Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz')"><a href="#">Homo Sapiens GRCh37</a></li>
+				    <li onclick="$('#genome').val('Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz')"><a href="#">Homo Sapiens GRCh38</a></li>
+				    <li onclick="$('#genome').val('Mus_musculus.GRCm38.dna.primary_assembly.fa.gz')"><a href="#">Mus musculus GRCm38</a></li>
+				    <li onclick="$('#genome').val('Saccharomyces_cerevisiae.R64-1-1.dna.toplevel.fa.gz')"><a href="#">S. cerevisiae R64</a></li>
+				</ul>
+			    </div>
+			</div>
+			<p></p>
+			<button type = "submit" name = "submit" value = "0" class = "btn btn-primary">Run Indigo</button>
+		    </div>
+		    <div id="fasta" class="tab-pane fade">
+			<p></p>
+			<div class="form-group">
+			    <label for="fasta">Single Fasta (.fa)</label>
+			    <br>
+			    <label class="btn btn-default btn-file">
+				<input type="file" name="fasta" id="fasta" hidden />
+			    </label>
+			</div>
+			<p></p>
+			<button type = "submit" name = "submit" value = "1" class = "btn btn-primary">Run Indigo</button>
+		    </div>
+		    <div id="wildtype" class="tab-pane fade">
+			<p></p>
+			<div class="form-group">
+			    <label for="wtab">Wildtype Chromatogram (.ab1)</label>
+			    <br>
+			    <label class="btn btn-default btn-file">
+				<input type="file" name="wtab" id="wtab" hidden />
+			    </label>
+			</div>
+			<p></p>
+			<button type = "submit" name = "submit" value = "2" class = "btn btn-primary">Run Indigo</button>
+		    </div>
+		</div>
+	    </form>
+	    {% if error %}
+	    <p class="error"><strong>Error:</strong> {{ error }}
+	    {% endif %}
+	</div>
+   </body>
+</html>
