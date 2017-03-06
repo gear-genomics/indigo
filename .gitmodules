@@ -1,0 +1,9 @@
+[submodule "src/sdsl"]
+	path = src/sdsl
+	url = https://github.com/simongog/sdsl-lite.git
+[submodule "src/htslib"]
+	path = src/htslib
+	url = https://github.com/samtools/htslib.git
+[submodule "src/modular-boost"]
+	path = src/modular-boost
+	url = https://github.com/boostorg/boost.git
