@@ -1,3 +1,18 @@
+.sdsl
+.htslib
+.boost
+src/indigo
+src/sdslLite/
+fm/
+data/
+benchmark/
+ws/nohup.out
+ws/venv/
+*.pyc
+
+# Backup files
+*~
+
 # Compiled Object files
 *.slo
 *.lo
