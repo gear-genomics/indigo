@@ -96,7 +96,7 @@ def upload_file():
          return render_template('upload.html', error = error)
 
       # Send download pdf
-      return redirect("/download/" + uniqout, code=302)
+      return redirect("/indigo/download/" + uniqout, code=302)
    return render_template('upload.html')
 
 @app.route("/")

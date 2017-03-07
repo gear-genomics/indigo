@@ -2,9 +2,9 @@
     <head>
 	<title>Indigo</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script type="text/javascript" src="static/jquery-3.1.1.min.js"></script>
-	<script type="text/javascript" src="static/bootstrap.min.js"></script>
-	<link type="text/css" href="static/bootstrap.min.css" rel="stylesheet" media="screen">
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<link type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" media="screen">
 	<script>
 	    $(function() {
 	    $(".dropdown-menu li a").click(function() {
@@ -17,12 +17,12 @@
     <body>
 	<div class="container">
 	    <div class="page-header">
-		<h1>Discovery of InDels in Sanger Chromatograms</h1>
+		<h1>Indigo: InDel Discovery in Sanger Chromatograms</h1>
 		<p>Analysis takes a couple of seconds to run, please be patient.</p>
 		<p><a href="https://www-db.embl.de/EMBLPersonGroup-PersonPicture/MailForm/?recipient=CP-60010497">Help</a></p>
 	    </div>
 
-	    <form action = "/upload" method = "POST" enctype = "multipart/form-data">
+	    <form action = "/indigo/upload" method = "POST" enctype = "multipart/form-data">
 		<div class="form-group">
 		    <label for="experiment">Experiment Chromatogram (.ab1)</label>
 		    <br>
