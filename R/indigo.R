@@ -5,15 +5,13 @@ library(ggplot2)
 args=commandArgs(trailingOnly=TRUE)
 experiment = args[1]
 outpdf = args[2]
-trim5 = 50
-trim3 = 50
 
 pdf(outpdf)
 
 # Plot chromatogram
-hetsangerseq <- readsangerseq(experiment)
-hetcalls <- makeBaseCalls(hetsangerseq, ratio = 0.33)
-chromatogram(hetcalls, width = 100, height = 2, trim5 = trim5, trim3 = trim3, showcalls = "both")
+sanger = readsangerseq(experiment)
+bc = makeBaseCalls(sanger, ratio = 0.33)
+chromatogram(bc, width = 100, height = 2, trim5 = 50, trim3 = 50, showcalls = "both")
 
 # Print decomposition
 dc = read.table(paste0(outpdf, ".decomp"), header=T)
