@@ -111,6 +111,7 @@ plotAlignment(TConfig const& c, TAlign const& align, ReferenceSlice const& rs, i
   ofile << std::endl;
   ofile << std::endl;
 
+  uint32_t blockcount = 0;
   while (s < e) {
     ofile << "Alt" << std::setw(10) << vi << ' ';
     for(TAIndex j = s; ((j < (TAIndex) e) && (j < s + c.linelimit)); ++j) {
@@ -133,6 +134,13 @@ plotAlignment(TConfig const& c, TAlign const& align, ReferenceSlice const& rs, i
     ofile << std::endl;
     ofile << std::endl;
     s += c.linelimit;
+    ++blockcount;
+  }
+  if (blockcount < 6) {
+    // Add spacer for small alignments
+    for(uint32_t i = blockcount; i < 6; ++i) {
+      for(uint32_t k = 0; k<4; ++k) ofile << std::endl;
+    }
   }
   ofile << "#";
   for(uint32_t i = 1; i < fald; ++i) ofile << "-";
