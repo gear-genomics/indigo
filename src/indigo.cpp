@@ -213,6 +213,7 @@ int main(int argc, char** argv) {
 	// Read FASTA
 	rs.chr = "";
 	rs.refslice = "";
+	std::string tmpfasta = "";
 	now = boost::posix_time::second_clock::local_time();
 	std::cout << '[' << boost::posix_time::to_simple_string(now) << "] " << "Load FASTA reference" << std::endl;
 	std::ifstream fafile(c.genome.string().c_str());
@@ -227,18 +228,18 @@ int main(int argc, char** argv) {
 		}
 		rs.chr = line.substr(1);
 	      } else {
-		rs.refslice += boost::to_upper_copy(line);
+		tmpfasta += boost::to_upper_copy(line);
 	      }
 	    }
 	  }
 	  fafile.close();
 	}
 	// Check FASTA
-	for(uint32_t k = 0; k<rs.refslice.size(); ++k) {
-	  if ((rs.refslice[k] != 'A') && (rs.refslice[k] != 'C') && (rs.refslice[k] != 'G') && (rs.refslice[k] != 'T') && (rs.refslice[k] != 'N')) {
-	    std::cerr << "FASTA file contains nucleotides != [ACGTN]." << std::endl;
-	    return -1;
-	  }
+	for(uint32_t k = 0; k < tmpfasta.size(); ++k)
+	  if ((tmpfasta[k] == 'A') || (tmpfasta[k] == 'C') || (tmpfasta[k] == 'G') || (tmpfasta[k] == 'T') || (tmpfasta[k] == 'N')) rs.refslice += tmpfasta[k];
+	if (!(rs.refslice.size() > 0)) {
+	  std::cerr << "FASTA file contains nucleotides != [ACGTN]." << std::endl;
+	  return -1;
 	}
 	construct_im(fm_index, rs.refslice.c_str(), 1);
       } else {
