@@ -18,17 +18,25 @@ def allowed_file(filename):
    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['ab1', 'pdf', 'fa'])
 
 
-@app.route('/download/<filename>')
-def download(filename):
+@app.route('/download/<uuid>')
+def download(uuid):
+   filename = "indigo_" + uuid + ".pdf"
    if allowed_file(filename):
-      if os.path.isfile(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-         return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), attachment_filename=filename)
+      sf = os.path.join(app.config['UPLOAD_FOLDER'], uuid[0:2])
+      if os.path.exists(sf):
+         if os.path.isfile(os.path.join(sf, filename)):
+            return send_file(os.path.join(sf, filename), attachment_filename=filename)
    return "File does not exist!"
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload_file():
    if request.method == 'POST':
       uuidstr = str(uuid.uuid4())
+
+      # Get subfolder
+      sf = os.path.join(app.config['UPLOAD_FOLDER'], uuidstr[0:2])
+      if not os.path.exists(sf):
+         os.makedirs(sf)
 
       # Experiment
       if 'experiment' not in request.files:
@@ -41,7 +49,7 @@ def upload_file():
       if not allowed_file(fexp.filename):
          error = "Experiment file has incorrect file type!"
          return render_template('upload.html', error = error)
-      fexpname = os.path.join(app.config['UPLOAD_FOLDER'], "indigo_" + uuidstr + "_" + secure_filename(fexp.filename))
+      fexpname = os.path.join(sf, "indigo_" + uuidstr + "_" + secure_filename(fexp.filename))
       fexp.save(fexpname)
 
       # Genome
@@ -63,7 +71,7 @@ def upload_file():
          if not allowed_file(fafile.filename):
             error = "Fasta file has incorrect file type!"
             return render_template('upload.html', error = error)
-         genome = os.path.join(app.config['UPLOAD_FOLDER'], "indigo_" + uuidstr + "_" + secure_filename(fafile.filename))
+         genome = os.path.join(sf, "indigo_" + uuidstr + "_" + secure_filename(fafile.filename))
          fafile.save(genome)
       elif val == "2":
          if 'wtab' not in request.files:
@@ -76,17 +84,16 @@ def upload_file():
          if not allowed_file(wtabfile.filename):
             error = "Wildtype Chromatogram file has incorrect file type!"
             return render_template('upload.html', error = error)
-         genome = os.path.join(app.config['UPLOAD_FOLDER'], "indigo_" + uuidstr + "_" + secure_filename(wtabfile.filename))
+         genome = os.path.join(sf, "indigo_" + uuidstr + "_" + secure_filename(wtabfile.filename))
          wtabfile.save(genome)
       else:
          error = "No input reference provided!"
          return render_template('upload.html', error = error)
 
       # Run Rscript
-      uniqout = "indigo_" + uuidstr + ".pdf"
-      outfile = os.path.join(app.config['UPLOAD_FOLDER'], uniqout)
-      logfile = os.path.join(app.config['UPLOAD_FOLDER'], "indigo_" + uuidstr + ".log")
-      errfile = os.path.join(app.config['UPLOAD_FOLDER'], "indigo_" + uuidstr + ".err")
+      outfile = os.path.join(sf, "indigo_" + uuidstr + ".pdf")
+      logfile = os.path.join(sf, "indigo_" + uuidstr + ".log")
+      errfile = os.path.join(sf, "indigo_" + uuidstr + ".err")
       with open(logfile, "w") as log:
          with open(errfile, "w") as err:
             blexe = os.path.join(app.config['INDIGO'], "indigo.sh")
@@ -96,7 +103,7 @@ def upload_file():
          return render_template('upload.html', error = error)
 
       # Send download pdf
-      return redirect("/indigo/download/" + uniqout, code=302)
+      return redirect("/indigo/download/" + uuidstr, code=302)
    return render_template('upload.html')
 
 @app.route("/")
