@@ -8,10 +8,18 @@ outpdf = args[2]
 
 pdf(outpdf)
 
+
+# Get trim sizes
+r = read.table(paste0(outpdf, ".abif"), header=T)
+ltrim = (1:nrow(r))[r$trim=='N'][1] - 1
+rtrim = nrow(r) - tail((1:nrow(r))[r$trim=='N'], n=1)
+lentr = nrow(r) - ltrim - rtrim
+print(list(left=ltrim, right=rtrim, tracelength=lentr))
+
 # Plot chromatogram
 sanger = readsangerseq(experiment)
 bc = makeBaseCalls(sanger, ratio = 0.33)
-chromatogram(bc, width = 100, height = 2, trim5 = 50, trim3 = 50, showcalls = "both")
+chromatogram(bc, width = 80, height = 2, trim5 = ltrim, trim3 = rtrim, showcalls = "both")
 
 # Print decomposition
 dc = read.table(paste0(outpdf, ".decomp"), header=T)

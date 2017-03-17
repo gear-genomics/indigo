@@ -37,7 +37,6 @@ struct Config {
   uint16_t filetype;   //0: *fa.gz, 1: *.fa, 2: *.ab1
   uint16_t kmer;
   uint16_t maxindel;
-  uint16_t trim;
   uint16_t linelimit;
   uint16_t madc;
   float pratio;
@@ -56,7 +55,6 @@ int main(int argc, char** argv) {
     ("genome,g", boost::program_options::value<boost::filesystem::path>(&c.genome), "(gzipped) fasta or wildtype ab1 file")
     ("pratio,p", boost::program_options::value<float>(&c.pratio)->default_value(0.33), "peak ratio to call base")
     ("kmer,k", boost::program_options::value<uint16_t>(&c.kmer)->default_value(15), "kmer size")
-    ("trim,t", boost::program_options::value<uint16_t>(&c.trim)->default_value(50), "trim size for Sanger trace")
     ("maxindel,m", boost::program_options::value<uint16_t>(&c.maxindel)->default_value(1000), "max. indel size in Sanger trace")
     ;
 
@@ -95,7 +93,7 @@ int main(int argc, char** argv) {
   // Extended ABIF output?
   if (vm.count("fullabif")) c.fullabif = true;
   else c.fullabif = false;
-  
+
   // Show cmd
   boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
   std::cout << '[' << boost::posix_time::to_simple_string(now) << "] ";
@@ -113,18 +111,22 @@ int main(int argc, char** argv) {
   // Call bases
   BaseCalls bc;
   basecall(tr, bc, c.pratio);
-
+  if (!estimateTrim(bc)) return -1;
+  
   // Write ABIF signal
   boost::filesystem::path outabif(c.outprefix + ".abif");
   std::ofstream ofile(outabif.string().c_str());
   if (!c.fullabif) {
-    ofile << "basenum\tpeakA\tpeakC\tpeakG\tpeakT\tprimary\tsecondary\tconsensus" << std::endl;
+    uint16_t backtrim = bc.primary.size() - bc.rtrim;
+    ofile << "basenum\tpeakA\tpeakC\tpeakG\tpeakT\tprimary\tsecondary\tconsensus\ttrim" << std::endl;
     for(uint32_t i = 0; i<bc.primary.size(); ++i) {
       ofile << i << "\t";
       for(uint32_t k =0; k<4; ++k) {
 	ofile << bc.peak[k][i] << "\t";
       }
-      ofile << bc.primary[i] << "\t" << bc.secondary[i] << "\t" << bc.consensus[i] << std::endl;
+      ofile << bc.primary[i] << "\t" << bc.secondary[i] << "\t" << bc.consensus[i] << "\t";
+      if ((i < bc.ltrim) || (i >= backtrim)) ofile << "Y" << std::endl;
+      else ofile << "N" << std::endl;
     }
   } else {
     ofile << "pos\tpeakA\tpeakC\tpeakG\tpeakT" << std::endl;
@@ -202,9 +204,10 @@ int main(int argc, char** argv) {
 	if (!readab(c.genome, wt)) return -1;
 	BaseCalls wtbc;
 	basecall(wt, wtbc, c.pratio);
-	construct_im(fm_index, wtbc.consensus.c_str(), 1);
+	if (!estimateTrim(wtbc)) return -1;
 	rs.chr = "wildtype";
-	rs.refslice = wtbc.consensus;
+	rs.refslice = trimmedPSeq(wtbc);
+	construct_im(fm_index, rs.refslice.c_str(), 1);
       }
       else if (fcode[0] == '>') {
 	// Single FASTA file
@@ -281,13 +284,13 @@ int main(int argc, char** argv) {
     TAlign alignPrimary;
     AlignConfig<true, false> semiglobal;
     DnaScore<int> sc(5, -4, -50, 0);
-    std::string pri = bc.primary.substr(c.trim, bc.primary.size() - (2*c.trim));
+    std::string pri = trimmedPSeq(bc);
     gotoh(pri, rs.refslice, alignPrimary, semiglobal, sc);
     plotAlignment(c, alignPrimary, rs, 1);
     
     typedef boost::multi_array<char, 2> TAlign;
     TAlign alignSecondary;
-    std::string sec = bc.secondary.substr(c.trim, bc.secondary.size() - (2*c.trim));
+    std::string sec = trimmedSecSeq(bc);
     gotoh(sec, rs.refslice, alignSecondary, semiglobal, sc);
     plotAlignment(c, alignSecondary, rs, 2);
   }

@@ -84,6 +84,8 @@ struct BaseCalls {
   typedef std::vector<TPosition> TPositionACGT;
 
   bool indelshift;
+  uint16_t ltrim;
+  uint16_t rtrim;
   uint16_t breakpoint;
   std::string consensus;
   std::string primary;
@@ -404,14 +406,55 @@ basecall(Trace const& tr, BaseCalls& bc, float sigratio) {
 }
 
 
+inline std::string
+trimmedPSeq(BaseCalls const& bc) {
+  uint16_t len = bc.primary.size() - bc.ltrim - bc.rtrim;
+  return bc.primary.substr(bc.ltrim, len);
+}
+
+inline std::string
+trimmedSecSeq(BaseCalls const& bc) {
+  uint16_t len = bc.secondary.size() - bc.ltrim - bc.rtrim;
+  return bc.secondary.substr(bc.ltrim, len);
+}
+
+inline std::string
+trimmedCSeq(BaseCalls const& bc) {
+  uint16_t len = bc.consensus.size() - bc.ltrim - bc.rtrim;
+  return bc.consensus.substr(bc.ltrim, len);
+}
+
+inline uint16_t
+_estimateCut(std::string const& seq) {
+  uint16_t trim = 50;  // Default trim size
+  uint16_t ncount = 0;
+  uint16_t wsize = trim;
+  uint16_t hsize = seq.size() / 2;
+
+  for(uint16_t i = 0; ((i < wsize) && (i < hsize)); ++i)
+    if ((seq[i] != 'A') && (seq[i] != 'C') && (seq[i] != 'G') && (seq[i] != 'T')) ++ncount;
+  for(uint16_t k = wsize; k < hsize; ++k) {
+    if ((seq[k-wsize] != 'A') && (seq[k-wsize] != 'C') && (seq[k-wsize] != 'G') && (seq[k-wsize] != 'T')) --ncount;
+    if ((seq[k] != 'A') && (seq[k] != 'C') && (seq[k] != 'G') && (seq[k] != 'T')) ++ncount;
+    if ((float) ncount / (float) wsize >= 0.1) trim = k;   // take last k above threshold;
+  }
+  return trim;
+}
+
+inline bool
+estimateTrim(BaseCalls& bc) {
+  bc.ltrim = _estimateCut(bc.secondary);
+  bc.rtrim = _estimateCut(std::string(bc.secondary.rbegin(), bc.secondary.rend()));
+  if ((uint32_t) (bc.ltrim + bc.rtrim + 10) >= (uint32_t) bc.secondary.size()) {
+    std::cerr << "Poor quality Sanger trace where trim sizes are larger than the sequence size!" << std::endl;
+    return false;
+  }
+  return true;
+}
+
 template<typename TConfig>
 inline bool
 findBreakpoint(TConfig const& c, BaseCalls& bc) {
-  if (bc.consensus.size() < 3 * c.trim) {
-    std::cerr << "Consensus sequence is too small for the selected trim size." << std::endl;
-    return false;
-  }
-  
   int32_t ncount = 0;
   for(uint32_t i = 0; ((i<c.kmer) && (i<bc.consensus.size())); ++i)
     if (bc.consensus[i] == 'N') ++ncount;
@@ -450,10 +493,10 @@ findBreakpoint(TConfig const& c, BaseCalls& bc) {
       break;
     }
   }
-  if ((bc.breakpoint <= c.trim) || ((bc.consensus.size() - bc.breakpoint <= c.trim)) || (bestDiff < 0.25)) {
+  if ((bc.breakpoint <= bc.ltrim) || ((bc.consensus.size() - bc.breakpoint <= bc.rtrim)) || (bestDiff < 0.25)) {
     // No indel shift
     bc.indelshift = false;
-    bc.breakpoint = bc.consensus.size() - c.trim - 1;
+    bc.breakpoint = bc.consensus.size() - bc.rtrim - 1;
     traceleft = true;
     bestDiff = 0;
   }
@@ -465,6 +508,9 @@ findBreakpoint(TConfig const& c, BaseCalls& bc) {
     std::reverse(bc.consensus.begin(), bc.consensus.end());
     std::reverse(bc.primary.begin(), bc.primary.end());
     std::reverse(bc.secondary.begin(), bc.secondary.end());
+    uint16_t tmptrim = bc.ltrim;
+    bc.ltrim = bc.rtrim;
+    bc.rtrim = tmptrim;
     for(uint32_t k = 0; k<4; ++k) {
       std::reverse(bc.peak[k].begin(), bc.peak[k].end());
       std::reverse(bc.pos[k].begin(), bc.pos[k].end());

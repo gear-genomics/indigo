@@ -226,23 +226,27 @@ findHomozygousBreakpoint(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
   TAlign align;
   AlignConfig<true, false> semiglobal;
   DnaScore<int> sc(5, -4, -10, -1);
-  std::string consslice = bc.consensus.substr(c.trim, (bc.consensus.size()-2*c.trim));
+  std::string consslice = trimmedCSeq(bc);
   gotoh(consslice, rs.refslice, align, semiglobal, sc);
-  
+
   typedef typename TAlign::index TAIndex;
   TAIndex alignStart = 0;
   TAIndex alignEnd = 0;
   for(TAIndex j = 0; j < (TAIndex) align.shape()[1]; ++j) {
-    if (align[0][j] != '-') {
+    if ((align[0][j] != '-') && (align[1][j] != '-')) {
       alignStart = j;
       break;
     }
   }
   for(int32_t j = (int32_t) (align.shape()[1] - 1); j >= 0; --j) {
-    if (align[0][j] != '-') {
+    if ((align[0][j] != '-') && (align[1][j] != '-')) {
       alignEnd = j;
       break;
     }
+  }
+  if (alignStart >= alignEnd) {
+    std::cerr << "No valid alignment found between consensus and reference!" << std::endl;
+    return false;
   }
   int32_t mismatch = 0;
   for(uint32_t j = alignStart; ((j<c.kmer) && (j<alignEnd)); ++j)
@@ -275,7 +279,7 @@ findHomozygousBreakpoint(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
     rightSum -= mmratio[i];
   }
   // Find true consensus sequence breakpoint
-  TAIndex varIndex = c.trim;
+  TAIndex varIndex = bc.ltrim;
   for(TAIndex j = alignStart; j < alignEnd; ++j) {
     if (j >= alignStart + bp) {
       // Forward breakpoint to first N or gap
@@ -299,6 +303,9 @@ findHomozygousBreakpoint(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
     std::reverse(bc.consensus.begin(), bc.consensus.end());
     std::reverse(bc.primary.begin(), bc.primary.end());
     std::reverse(bc.secondary.begin(), bc.secondary.end());
+    uint16_t tmptrim = bc.ltrim;
+    bc.ltrim = bc.rtrim;
+    bc.rtrim = tmptrim;
     for(uint32_t k = 0; k<4; ++k) {
       std::reverse(bc.peak[k].begin(), bc.peak[k].end());
       std::reverse(bc.pos[k].begin(), bc.pos[k].end());
@@ -312,7 +319,7 @@ findHomozygousBreakpoint(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
 template<typename TConfig>
 inline bool
 decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
-  if (c.trim >= bc.breakpoint) {
+  if (bc.ltrim >= bc.breakpoint) {
     std::cerr << "Breakpoint is inside the trimmed boundaries of the Sanger trace." << std::endl;
     return false;
   }
@@ -321,7 +328,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
   TAlign align;
   AlignConfig<true, false> semiglobal;
   DnaScore<int> sc(5, -4, -10, -1);
-  std::string consslice = bc.consensus.substr(c.trim, (bc.breakpoint-c.trim));
+  std::string consslice = bc.consensus.substr(bc.ltrim, (bc.breakpoint-bc.ltrim));
   gotoh(consslice, rs.refslice, align, semiglobal, sc);
 
   /*
@@ -338,7 +345,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
   uint32_t varIndex = 0;
   uint32_t refPointer = 0;
   uint32_t alignIndex = 0;
-  uint32_t vi = c.trim;
+  uint32_t vi = bc.ltrim;
   for(uint32_t j = 0; j < align.shape()[1]; ++j) {
     if (align[0][j] != '-') {
       if (align[1][j] != bc.primary[vi]) {
@@ -360,11 +367,12 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
 
   // Iterate possible deletion lengths
   std::vector<int32_t> fref;
-  uint32_t maxdel = rs.refslice.size() - (refPointer + c.trim);
+  uint32_t maxdel = 2;
+  if (rs.refslice.size() > (refPointer + bc.rtrim + 2)) maxdel = rs.refslice.size() - (refPointer + bc.rtrim);
   for(uint32_t del = 0; ((del < c.maxindel) && (del < maxdel / 2)); ++del) {
     int32_t failedref = 0;
     vi = varIndex;
-    for(uint32_t j = alignIndex + del + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+    for(uint32_t j = alignIndex + del + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
       if (align[1][j] != bc.primary[vi]) {
 	char sec = phaseRefAllele(bc, align[1][j], vi);
 	if (sec == 'N') ++failedref;
@@ -396,11 +404,11 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
   // Iterate possible insertion lengths
   std::vector<int32_t> fins;
   fins.push_back(fref[0]);
-  uint32_t maxins = (int32_t) bc.consensus.size() - (int32_t) (c.trim + bc.breakpoint);
+  uint32_t maxins = (int32_t) bc.consensus.size() - (int32_t) (bc.rtrim + bc.breakpoint);
   for(uint32_t ins = 1; ((ins < c.maxindel) && (ins < maxins / 2)); ++ins) {
     int32_t failedref = 0;
     vi = varIndex + ins;
-    for(uint32_t j = alignIndex + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+    for(uint32_t j = alignIndex + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
       if (align[1][j] != bc.primary[vi]) {
 	char sec = phaseRefAllele(bc, align[1][j], vi);
 	if (sec == 'N') ++failedref;
@@ -447,7 +455,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
       for(uint32_t del = 0; ((del < c.maxindel) && (del <  maxdel / 2)); ++del) {
 	int32_t failedref = 0;
 	vi = varIndex + ins;
-	for(uint32_t j = alignIndex + del + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+	for(uint32_t j = alignIndex + del + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
 	  if (align[1][j] != bc.primary[vi]) {
 	    char sec = phaseRefAllele(bc, align[1][j], vi);
 	    if (sec == 'N') ++failedref;
@@ -466,7 +474,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
     if (bestFR != 1000) {
       std::cout << "Complex mutation, decomposition: ins: " << bestIns << ", del: " << bestDel << ", error: " << bestFR << std::endl;
       vi = varIndex + bestIns;
-      for(uint32_t j = alignIndex + bestDel + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+      for(uint32_t j = alignIndex + bestDel + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
 	if (align[1][j] != bc.primary[vi]) {
 	  char sec = phaseRefAllele(bc, align[1][j], vi);
 	  if (sec != 'N') {
@@ -483,7 +491,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
     if (!deldecomp.empty()) {
       std::sort(deldecomp.begin(), deldecomp.end());
       vi = varIndex;
-      for(uint32_t j = alignIndex + deldecomp[0] + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+      for(uint32_t j = alignIndex + deldecomp[0] + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
 	if (align[1][j] != bc.primary[vi]) {
 	  char sec = phaseRefAllele(bc, align[1][j], vi);
 	  if (sec != 'N') {
@@ -495,7 +503,7 @@ decomposeAlleles(TConfig const& c, BaseCalls& bc, ReferenceSlice& rs) {
     } else {
       std::sort(insdecomp.begin(), insdecomp.end());
       vi = varIndex + insdecomp[0];
-      for(uint32_t j = alignIndex + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - c.trim))); ++j, ++vi) {
+      for(uint32_t j = alignIndex + 1; ((j < align.shape()[1]) && (vi < (bc.consensus.size() - bc.rtrim))); ++j, ++vi) {
 	if (align[1][j] != bc.primary[vi]) {
 	  char sec = phaseRefAllele(bc, align[1][j], vi);
 	  if (sec != 'N') {
@@ -623,10 +631,10 @@ getReferenceSlice(TConfig const& c, TFMIndex const& fm_index, BaseCalls const& b
   // Fwd and rev index search
   std::vector<int64_t> hitFwd;
   std::vector<int64_t> hitRev;
-  scanLeft(fm_index, bc.consensus, bc.breakpoint, c.kmer, c.trim, hitFwd, true);
+  scanLeft(fm_index, bc.consensus, bc.breakpoint, c.kmer, bc.ltrim, hitFwd, true);
   std::string rv = bc.consensus;
   reverseComplement(rv);
-  scanRight(fm_index, rv, (uint16_t) (rv.size() - bc.breakpoint - 1), c.kmer, c.trim, hitRev, true);
+  scanRight(fm_index, rv, (uint16_t) (rv.size() - bc.breakpoint - 1), c.kmer, bc.rtrim, hitRev, true);
   
   // Select best orientation
   int64_t bestFwd;
@@ -646,8 +654,8 @@ getReferenceSlice(TConfig const& c, TFMIndex const& fm_index, BaseCalls const& b
     // Try using non-unique matches
     hitFwd.clear();
     hitRev.clear();
-    scanLeft(fm_index, bc.consensus, bc.breakpoint, c.kmer, c.trim, hitFwd, false);
-    scanRight(fm_index, rv, (uint16_t) (rv.size() - bc.breakpoint - 1), c.kmer, c.trim, hitRev, false);
+    scanLeft(fm_index, bc.consensus, bc.breakpoint, c.kmer, bc.ltrim, hitFwd, false);
+    scanRight(fm_index, rv, (uint16_t) (rv.size() - bc.breakpoint - 1), c.kmer, bc.rtrim, hitRev, false);
     freqFwd = findMaxFreq(hitFwd, bestFwd);
     freqRev = findMaxFreq(hitRev, bestRev);
     if ((freqFwd >= minKmerSupport) && (freqFwd > 2*freqRev)) {
@@ -689,17 +697,16 @@ getReferenceSlice(TConfig const& c, TFMIndex const& fm_index, BaseCalls const& b
     uint32_t tmpend = chrpos + bc.consensus.size() + c.maxindel;
     if (tmpend < seqlen[refIndex]) sliceend = tmpend;
   }
-  rs.pos = slicestart;
-  char* seq = NULL;
   if (!c.filetype) {
-    seq = faidx_fetch_seq(fai, rs.chr.c_str(), slicestart, sliceend, &slen);
+    rs.pos = slicestart;
+    char* seq = faidx_fetch_seq(fai, rs.chr.c_str(), slicestart, sliceend, &slen);
     rs.refslice = boost::to_upper_copy(std::string(seq));
+    if (seq != NULL) free(seq);
   }
   if (!rs.forward) reverseComplement(rs.refslice);
   //std::cout << rs.chr << "\t" << rs.pos << "\t" << rs.forward << std::endl;
   
   // Clean-up
-  if (seq != NULL) free(seq);
   if (fai != NULL) fai_destroy(fai);
  
   return true;
