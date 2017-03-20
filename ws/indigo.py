@@ -1,5 +1,6 @@
 import os
 import uuid
+import re
 import subprocess
 from subprocess import call
 from flask import Flask, send_file, flash, render_template, request, redirect, url_for
@@ -17,15 +18,19 @@ app.secret_key = 'soadfdafvmv'
 def allowed_file(filename):
    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['ab1', 'pdf', 'fa'])
 
+uuid_re = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+def is_valid_uuid(s):
+   return uuid_re.match(s) is not None
 
 @app.route('/download/<uuid>')
 def download(uuid):
-   filename = "indigo_" + uuid + ".pdf"
-   if allowed_file(filename):
-      sf = os.path.join(app.config['UPLOAD_FOLDER'], uuid[0:2])
-      if os.path.exists(sf):
-         if os.path.isfile(os.path.join(sf, filename)):
-            return send_file(os.path.join(sf, filename), attachment_filename=filename)
+   if is_valid_uuid(uuid):
+      filename = "indigo_" + uuid + ".pdf"
+      if allowed_file(filename):
+         sf = os.path.join(app.config['UPLOAD_FOLDER'], uuid[0:2])
+         if os.path.exists(sf):
+            if os.path.isfile(os.path.join(sf, filename)):
+               return send_file(os.path.join(sf, filename), attachment_filename=filename)
    return "File does not exist!"
 
 @app.route('/upload', methods = ['GET', 'POST'])
