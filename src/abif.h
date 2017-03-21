@@ -60,10 +60,12 @@ struct Abif {
 
 struct Trace {
   typedef std::vector<int16_t> TMountains;
+  typedef std::vector<uint8_t> TQual;
   
   std::string acgtOrder;
   std::string basecalls1;
   std::string basecalls2;
+  TQual qual;
   TMountains basecallpos;
   TMountains peaks1;
   TMountains peaks2;
@@ -299,6 +301,12 @@ readab(boost::filesystem::path const& filename, Trace& tr) {
 	    tr.trace[3].push_back(readBinI16(entry, k*2));
 	  }
 	}
+      } else if (abi[i].etype == 1) {
+	if (abi[i].key == "PCON.2") {
+	  for(int32_t k = 0; k < abi[i].nelements; ++k) {
+	    tr.qual.push_back(readBinUI8(entry, k));
+	  }
+	}
       }
     }
   }
@@ -307,6 +315,7 @@ readab(boost::filesystem::path const& filename, Trace& tr) {
   // Resize basecalls to position vector
   tr.basecalls1.resize(tr.basecallpos.size());
   tr.basecalls2.resize(tr.basecallpos.size());
+  tr.qual.resize(tr.basecallpos.size());
 
   // Assign trace
   for(uint32_t i = 0; i<tr.acgtOrder.size(); ++i) {
@@ -428,12 +437,26 @@ trimmedCSeq(BaseCalls const& bc) {
 }
 
 inline uint16_t
+_estimateCut(std::vector<double> const& score) {
+  double cumscore = 0;
+  uint16_t wsize = 50;
+  uint16_t hsize = score.size() / 2;
+  for(uint16_t i = 0; ((i < wsize) && (i < hsize)); ++i) cumscore += score[i];
+  for(uint16_t k = wsize; k < hsize; ++k) {
+    cumscore -= score[k-wsize];
+    cumscore += score[k];
+    if (cumscore > 0) return k;
+  }
+  return hsize;
+}
+
+inline uint16_t
 _estimateCut(std::string const& seq) {
   uint16_t trim = 50;  // Default trim size
   uint16_t ncount = 0;
   uint16_t wsize = trim;
   uint16_t hsize = seq.size() / 2;
-
+  
   for(uint16_t i = 0; ((i < wsize) && (i < hsize)); ++i)
     if ((seq[i] != 'A') && (seq[i] != 'C') && (seq[i] != 'G') && (seq[i] != 'T')) ++ncount;
   for(uint16_t k = wsize; k < hsize; ++k) {
@@ -443,11 +466,35 @@ _estimateCut(std::string const& seq) {
   }
   return trim;
 }
+     
 
 inline bool
 estimateTrim(BaseCalls& bc) {
   bc.ltrim = _estimateCut(bc.secondary);
   bc.rtrim = _estimateCut(std::string(bc.secondary.rbegin(), bc.secondary.rend()));
+
+  // Check overall trim size
+  if ((uint32_t) (bc.ltrim + bc.rtrim + 10) >= (uint32_t) bc.secondary.size()) {
+    std::cerr << "Poor quality Sanger trace where trim sizes are larger than the sequence size!" << std::endl;
+    return false;
+  }
+  return true;
+}
+  
+ 
+inline bool
+estimateTrim(BaseCalls& bc, Trace const& tr) {
+  double cutoff = 0.1;
+
+  typedef std::vector<double> TScore;
+  TScore score;
+  for(uint32_t i = 0; i < tr.qual.size(); ++i) score.push_back(cutoff - std::pow((double) 10, (double) tr.qual[i] / (double) -10.0));
+
+  bc.ltrim = _estimateCut(score);
+  TScore rev(score.rbegin(), score.rend());
+  bc.rtrim = _estimateCut(rev);
+
+  // Check overall trim size
   if ((uint32_t) (bc.ltrim + bc.rtrim + 10) >= (uint32_t) bc.secondary.size()) {
     std::cerr << "Poor quality Sanger trace where trim sizes are larger than the sequence size!" << std::endl;
     return false;

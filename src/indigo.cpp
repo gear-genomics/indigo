@@ -105,7 +105,9 @@ int main(int argc, char** argv) {
   // Call bases
   BaseCalls bc;
   basecall(tr, bc, c.pratio);
-  if (!estimateTrim(bc)) return -1;
+  if (!estimateTrim(bc)) {
+    if (!estimateTrim(bc, tr)) return -1;
+  }
   
   // Write ABIF signal
   boost::filesystem::path outabif(c.outprefix + ".abif");
@@ -192,7 +194,9 @@ int main(int argc, char** argv) {
 	if (!readab(c.genome, wt)) return -1;
 	BaseCalls wtbc;
 	basecall(wt, wtbc, c.pratio);
-	if (!estimateTrim(wtbc)) return -1;
+	if (!estimateTrim(wtbc)) {
+	  if (!estimateTrim(wtbc, wt)) return -1;
+	}
 	rs.chr = "wildtype";
 	rs.refslice = trimmedPSeq(wtbc);
 	construct_im(fm_index, rs.refslice.c_str(), 1);
