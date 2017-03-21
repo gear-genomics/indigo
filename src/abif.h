@@ -82,7 +82,8 @@ struct BaseCalls {
   typedef std::vector<float> TPeak;
   typedef std::vector<TPeak> TPeakACGT;
   typedef std::vector<TPosition> TPositionACGT;
-
+  typedef std::vector<uint16_t> TBCPos;
+  
   bool indelshift;
   uint16_t ltrim;
   uint16_t rtrim;
@@ -90,6 +91,7 @@ struct BaseCalls {
   std::string consensus;
   std::string primary;
   std::string secondary;
+  TBCPos bcPos;
   TPeakACGT peak;
   TPositionACGT pos;
 
@@ -366,6 +368,7 @@ basecall(Trace const& tr, BaseCalls& bc, float sigratio) {
 	bestIdx = k;
       }
     }
+    bc.bcPos.push_back(p[bestIdx].second);
     if ((validBases == 4) || (validBases == 0)) {
       primary.push_back('N');
       secondary.push_back('N');

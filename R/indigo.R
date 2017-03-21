@@ -1,25 +1,45 @@
-library(sangerseqR)
 library(gplots)
 library(ggplot2)
+library(reshape2)
 
 args=commandArgs(trailingOnly=TRUE)
-experiment = args[1]
-outpdf = args[2]
+outpdf = args[1]
 
 pdf(outpdf)
 
-
-# Get trim sizes
+# Trim trace
 r = read.table(paste0(outpdf, ".abif"), header=T)
-ltrim = (1:nrow(r))[r$trim=='N'][1] - 1
-rtrim = nrow(r) - tail((1:nrow(r))[r$trim=='N'], n=1)
-lentr = nrow(r) - ltrim - rtrim
+trim=r[!is.na(r$trim),c("pos","basenum", "trim")]
+ntrim = trim[trim$trim=='N',]
+ltrim = head(ntrim, n=1)$basenum - 1
+rtrim = nrow(trim) - tail(ntrim, n=1)$basenum
+lentr = nrow(trim) - ltrim - rtrim
 print(list(left=ltrim, right=rtrim, tracelength=lentr))
+r = r[head(ntrim, n=1)$pos:tail(ntrim, n=1)$pos,]
 
-# Plot chromatogram
-sanger = readsangerseq(experiment)
-bc = makeBaseCalls(sanger, ratio = 0.33)
-chromatogram(bc, width = 80, height = 2, trim5 = ltrim, trim3 = rtrim, showcalls = "both")
+# Plot trace
+scaleF = as.integer(lentr / 50)
+if (scaleF < 5) { scaleF = 5; }
+if (scaleF > 15) { scaleF = 15; }
+sizeF = 2.8 - 1.5 * (scaleF - 5)/10
+print(list(blocks=scaleF, textsize=sizeF))
+r$blocknum = as.integer((1:nrow(r))/(nrow(r)/scaleF))
+r[r$blocknum == scaleF,]$blocknum = scaleF - 1
+r[is.na(r$consensus) | r$consensus != 'N',]$secondary = NA
+r$vpos = r$pos
+r[is.na(r$consensus) | r$consensus != 'N',]$vpos = NA
+trace=melt(r[,c("pos", "blocknum", "peakA","peakC","peakG","peakT", "vpos", "primary", "secondary")], id.vars=c("pos", "blocknum", "primary", "secondary", "vpos"))
+trace$textypos = (substr(trace$primary, 1, 1) == substr(trace$variable, 5, 5))
+trace[!is.na(trace$textypos) & trace$textypos==F,]$textypos = NA
+trace[!is.na(trace$textypos),]$textypos = trace[!is.na(trace$textypos),]$value
+p1 = ggplot(data=trace, aes(x=pos, y=value))
+p1 = p1 + geom_vline(aes(xintercept = vpos), color="#E5F5F9", size=sizeF, na.rm=T)
+p1 = p1 + geom_line(aes(color=variable, group=variable), size=0.5)
+p1 = p1 + facet_wrap(~blocknum, scales="free", ncol=1, nrow=scaleF)
+p1 = p1 + geom_text(aes(x=pos, y=textypos, label=primary), size=sizeF, na.rm=T)
+p1 = p1 + geom_text(aes(x=pos, y=0, label=secondary), size=sizeF, na.rm=T)
+p1 = p1 + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank(), axis.title.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank(), strip.background = element_blank(), strip.text.y = element_blank(), strip.text.x = element_blank(), legend.position="none", panel.grid.major=element_blank(), panel.grid.minor=element_blank(), panel.background = element_blank(), panel.border=element_blank())
+p1
 
 # Print decomposition
 dc = read.table(paste0(outpdf, ".decomp"), header=T)

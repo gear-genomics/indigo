@@ -33,7 +33,6 @@ using namespace indigo;
 using namespace sdsl;
 
 struct Config {
-  bool fullabif;
   uint16_t filetype;   //0: *fa.gz, 1: *.fa, 2: *.ab1
   uint16_t kmer;
   uint16_t maxindel;
@@ -62,7 +61,6 @@ int main(int argc, char** argv) {
   otp.add_options()
     ("output,o", boost::program_options::value<std::string>(&c.outprefix)->default_value("align"), "output file prefix")
     ("linelimit,l", boost::program_options::value<uint16_t>(&c.linelimit)->default_value(60), "alignment line length")
-    ("fullabif,f", "full chromatogram output")
     ;
 
   boost::program_options::options_description hidden("Hidden options");
@@ -90,10 +88,6 @@ int main(int argc, char** argv) {
   }
   if (c.maxindel < 1) c.maxindel = 1;
 
-  // Extended ABIF output?
-  if (vm.count("fullabif")) c.fullabif = true;
-  else c.fullabif = false;
-
   // Show cmd
   boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
   std::cout << '[' << boost::posix_time::to_simple_string(now) << "] ";
@@ -116,27 +110,21 @@ int main(int argc, char** argv) {
   // Write ABIF signal
   boost::filesystem::path outabif(c.outprefix + ".abif");
   std::ofstream ofile(outabif.string().c_str());
-  if (!c.fullabif) {
-    uint16_t backtrim = bc.primary.size() - bc.rtrim;
-    ofile << "basenum\tpeakA\tpeakC\tpeakG\tpeakT\tprimary\tsecondary\tconsensus\ttrim" << std::endl;
-    for(uint32_t i = 0; i<bc.primary.size(); ++i) {
-      ofile << i << "\t";
-      for(uint32_t k =0; k<4; ++k) {
-	ofile << bc.peak[k][i] << "\t";
-      }
-      ofile << bc.primary[i] << "\t" << bc.secondary[i] << "\t" << bc.consensus[i] << "\t";
-      if ((i < bc.ltrim) || (i >= backtrim)) ofile << "Y" << std::endl;
+  uint16_t backtrim = bc.primary.size() - bc.rtrim;
+  uint32_t bcpos = 0;
+  uint16_t idx = bc.bcPos[bcpos];
+  ofile << "pos\tpeakA\tpeakC\tpeakG\tpeakT\tbasenum\tmaxA\tmaxC\tmaxG\tmaxT\tprimary\tsecondary\tconsensus\ttrim" << std::endl;
+  for(uint32_t i = 0; i<tr.traceACGT[0].size(); ++i) {
+    ofile << (i+1) << "\t";
+    for(uint32_t k =0; k<4; ++k) ofile << tr.traceACGT[k][i] << "\t";
+    if (idx == i) {
+      ofile << (bcpos+1) << "\t";
+      for(uint32_t k =0; k<4; ++k) ofile << bc.peak[k][bcpos] << "\t";
+      ofile << bc.primary[bcpos] << "\t" << bc.secondary[bcpos] << "\t" << bc.consensus[bcpos] << "\t";
+      if ((bcpos < bc.ltrim) || (bcpos >= backtrim)) ofile << "Y" << std::endl;
       else ofile << "N" << std::endl;
-    }
-  } else {
-    ofile << "pos\tpeakA\tpeakC\tpeakG\tpeakT" << std::endl;
-    for(uint32_t i = 0; i<tr.traceACGT[0].size(); ++i) {
-      ofile << i << "\t";
-      for(uint32_t k =0; k<4; ++k) {
-	ofile << tr.traceACGT[k][i] << "\t";
-      }
-      ofile << std::endl;
-    }
+      idx = bc.bcPos[++bcpos];
+    } else ofile << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << std::endl;
   }
   ofile.close();
 

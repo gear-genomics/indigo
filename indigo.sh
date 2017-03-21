@@ -22,4 +22,4 @@ BASEDIR=$(dirname "$SCRIPT")
 ${BASEDIR}/src/indigo -g ${2} -o ${3} ${1}  
 
 # Plot results
-Rscript ${BASEDIR}/R/indigo.R ${1} ${3}
+Rscript ${BASEDIR}/R/indigo.R ${3}
