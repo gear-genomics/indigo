@@ -5,7 +5,7 @@ library(reshape2)
 args=commandArgs(trailingOnly=TRUE)
 outpdf = args[1]
 
-pdf(outpdf)
+pdf(paste0(outpdf, ".pdf"))
 
 # Trim trace
 r = read.table(paste0(outpdf, ".abif"), header=T)

@@ -96,7 +96,7 @@ def upload_file():
          return render_template('upload.html', error = error)
 
       # Run Rscript
-      outfile = os.path.join(sf, "indigo_" + uuidstr + ".pdf")
+      outfile = os.path.join(sf, "indigo_" + uuidstr + "")
       logfile = os.path.join(sf, "indigo_" + uuidstr + ".log")
       errfile = os.path.join(sf, "indigo_" + uuidstr + ".err")
       with open(logfile, "w") as log:
