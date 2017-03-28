@@ -115,18 +115,18 @@ int main(int argc, char** argv) {
   uint16_t backtrim = bc.primary.size() - bc.rtrim;
   uint32_t bcpos = 0;
   uint16_t idx = bc.bcPos[bcpos];
-  ofile << "pos\tpeakA\tpeakC\tpeakG\tpeakT\tbasenum\tmaxA\tmaxC\tmaxG\tmaxT\tprimary\tsecondary\tconsensus\ttrim" << std::endl;
+  ofile << "pos\tpeakA\tpeakC\tpeakG\tpeakT\tbasenum\tmaxA\tmaxC\tmaxG\tmaxT\tprimary\tsecondary\tconsensus\tqual\ttrim" << std::endl;
   for(uint32_t i = 0; i<tr.traceACGT[0].size(); ++i) {
     ofile << (i+1) << "\t";
     for(uint32_t k =0; k<4; ++k) ofile << tr.traceACGT[k][i] << "\t";
     if (idx == i) {
       ofile << (bcpos+1) << "\t";
       for(uint32_t k =0; k<4; ++k) ofile << bc.peak[k][bcpos] << "\t";
-      ofile << bc.primary[bcpos] << "\t" << bc.secondary[bcpos] << "\t" << bc.consensus[bcpos] << "\t";
+      ofile << bc.primary[bcpos] << "\t" << bc.secondary[bcpos] << "\t" << bc.consensus[bcpos] << "\t" << (int32_t) tr.qual[bcpos] << "\t";
       if ((bcpos < bc.ltrim) || (bcpos >= backtrim)) ofile << "Y" << std::endl;
       else ofile << "N" << std::endl;
       idx = bc.bcPos[++bcpos];
-    } else ofile << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << std::endl;
+    } else ofile << "NA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" << std::endl;
   }
   ofile.close();
 
