@@ -1,6 +1,5 @@
 .sdsl
 .htslib
-.boost
 src/indigo
 src/sdslLite/
 fm/
