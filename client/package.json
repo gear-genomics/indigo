@@ -1,0 +1,17 @@
+{
+  "name": "indigo-client",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "rimraf dist && parcel build src/index.html --no-source-maps --public-url ./",
+    "dev": "parcel src/index.html --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "devDependencies": {
+    "parcel-bundler": "^1.9.2",
+    "rimraf": "^2.6.2"
+  }
+}
