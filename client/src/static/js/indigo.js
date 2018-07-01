@@ -49,5 +49,12 @@ function run() {
     formData.append('chromatogramFile', targetChromatogramFile.files[0])
   }
 
-  console.log('Submitting', formData)
+  axios.post(
+    'http://localhost:3300/api/v1/upload',
+    formData
+  ).then(res => {
+    console.log('POST /upload returned', data)
+  }).catch(err => {
+    console.error(err)
+  })
 }
