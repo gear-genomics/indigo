@@ -33,7 +33,7 @@ function run() {
   const target = targetTabs.querySelector('a.active').id
 
   if (target.startsWith('target-genome')) {
-    const genome = targetGenomes.querySelector('option[selected]').textContent
+    const genome = targetGenomes.querySelector('option:checked').value
     formData.append('genome', genome)
   } else if (target.startsWith('target-fasta')) {
     if (targetFastaFile.files.length === 0) {
