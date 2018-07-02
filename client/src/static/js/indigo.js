@@ -53,7 +53,7 @@ function run() {
     'http://localhost:3300/api/v1/upload',
     formData
   ).then(res => {
-    console.log('POST /upload returned', data)
+    console.log('POST /upload returned', res)
   }).catch(err => {
     console.error(err)
   })
