@@ -5,8 +5,8 @@ src/sdslLite/
 fm/
 data/
 benchmark/
-ws/nohup.out
-ws/venv/
+server/nohup.out
+server/venv/
 *.pyc
 
 # Backup files
