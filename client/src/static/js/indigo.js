@@ -1,4 +1,4 @@
-const EXAMPLE_PDF_URL = ''
+const API_URL = process.env.API_URL
 
 $('#mainTab a').on('click', function(e) {
   e.preventDefault()
@@ -48,16 +48,19 @@ function run() {
   showElement(resultInfo)
 
   axios
-    .post('http://localhost:3300/api/v1/upload', formData)
+    .post(`${API_URL}/upload`, formData)
     .then(res => {
       if (res.status === 200) {
         handleSuccess(res.data.data.url)
       }
     })
     .catch(err => {
-      const errorMessage = err.response.data.errors
-        .map(error => error.title)
-        .join('; ')
+      let errorMessage = err
+      if (err.response) {
+        errorMessage = err.response.data.errors
+          .map(error => error.title)
+          .join('; ')
+      }
       hideElement(resultInfo)
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
