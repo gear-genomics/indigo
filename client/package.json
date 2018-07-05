@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "rimraf dist && parcel build src/index.html --no-source-maps --public-url ./",
-    "dev": "parcel src/index.html --open"
+    "build": "rimraf dist && parcel build src/index.html --no-cache --no-source-maps --public-url ./",
+    "dev": "parcel src/index.html --no-cache --open"
   },
   "keywords": [],
   "author": "",
