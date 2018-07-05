@@ -51,7 +51,7 @@ function run() {
     .post(`${API_URL}/upload`, formData)
     .then(res => {
       if (res.status === 200) {
-        handleSuccess(res.data.data.url)
+        handleSuccess(`${API_URL}/` + res.data.data.url)
       }
     })
     .catch(err => {

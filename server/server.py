@@ -96,7 +96,7 @@ def upload_file():
             return jsonify(errors = [{"title": "Error in running Indigo!"}]), 400 
 
         # Send download url
-        urlout = "http://localhost:3300/api/v1/download/" + uuidstr
+        urlout = "download/" + uuidstr
         print(urlout)
         return jsonify(data={"url": urlout}), 200
     return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400 

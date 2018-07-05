@@ -55,10 +55,35 @@ dc = read.table(paste0(outpdf, ".decomp"), header=T)
 ggplot(data=dc, aes(x=indel, y=decomp)) + geom_line() + geom_point() + xlab("InDel length (in bp)") + ylab("Decomposition Error") + ylim(0,max(dc$decomp))
 
 # Plot alignments
+nlin = 80
 filename=paste0(outpdf, ".align1")
-textplot(readChar(filename, file.info(filename)$size))
+con = file(filename, open="r")
+lines = readLines(con)
+linpage = nlin
+if (length(lines) > nlin) {
+ npages = ceiling(length(lines) / nlin)
+ linpage = length(lines) / npages
+}
+for(i in seq(1, length(lines), linpage)) {
+ str = paste(lines[i:(min(i+linpage, length(lines)))], collapse="\n")
+ textplot(str)
+}
+close(con)
+
 filename=paste0(outpdf, ".align2")
-textplot(readChar(filename, file.info(filename)$size))
+con = file(filename, open="r")
+lines = readLines(con)
+linpage = nlin
+if (length(lines) > nlin) {
+ npages = ceiling(length(lines) / nlin)
+ linpage = length(lines) / npages
+}
+for(i in seq(1, length(lines), linpage)) {
+ str = paste(lines[i:(min(i+linpage, length(lines)))], collapse="\n")
+ textplot(str)
+}
+close(con)
+
 
 dev.off()
 
