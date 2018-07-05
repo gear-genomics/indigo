@@ -72,6 +72,8 @@ async function handleSuccess(pdfUrl) {
   hideElement(resultError)
   showElement(resultContainer)
 
+  canvasContainer.innerHTML = ''
+
   linkPdf.href = pdfUrl
   const w = canvasContainer.clientWidth
   const pdf = await pdfjsLib.getDocument({ url: pdfUrl })
