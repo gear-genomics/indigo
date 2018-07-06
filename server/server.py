@@ -12,9 +12,6 @@ from werkzeug.utils import secure_filename
 INDIGOWS = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
-
-
-app = Flask(__name__)
 CORS(app)
 app.config['INDIGO'] = os.path.join(INDIGOWS, "..")
 app.config['UPLOAD_FOLDER'] = os.path.join(app.config['INDIGO'], "data")
@@ -97,7 +94,6 @@ def upload_file():
 
         # Send download url
         urlout = "download/" + uuidstr
-        print(urlout)
         return jsonify(data={"url": urlout}), 200
     return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400 
    
