@@ -3,6 +3,7 @@ import uuid
 import re
 import subprocess
 import argparse
+import json
 from subprocess import call
 from flask import Flask, send_file, flash, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS
@@ -94,7 +95,9 @@ def upload_file():
 
         # Send download url
         urlout = "download/" + uuidstr
-        return jsonify(data={"url": urlout}), 200
+        dt = json.loads(open(outfile + ".json").read())
+        dt["url"] = urlout
+        return jsonify(data=dt), 200
     return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400 
    
 if __name__ == '__main__':
