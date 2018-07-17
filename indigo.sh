@@ -6,7 +6,7 @@ then
     echo "Indigo"
     echo "This program comes with ABSOLUTELY NO WARRANTY."
     echo ""
-    echo "Indigo (Version: 0.0.2)"
+    echo "Indigo (Version: 0.0.3)"
     echo "Contact: Tobias Rausch (rausch@embl.de)"
     echo "**********************************************************************"
     echo ""
@@ -18,8 +18,8 @@ fi
 SCRIPT=$(readlink -f "$0")
 BASEDIR=$(dirname "$SCRIPT")
 
-# Run analysis pipeline
-${BASEDIR}/src/indigo -g ${2} -o ${3} ${1}  
+# Create Align Output
+tracy decompose -f both -g ${2} -o ${3} ${1}  
 
 # Plot results
 Rscript ${BASEDIR}/R/indigo.R ${3}
