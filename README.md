@@ -7,19 +7,4 @@
 Indigo Online Method
 --------------------
 
-[Indigo](http://gear.embl.de/indigo) can be run online as a web application at [http://gear.embl.de/indigo](http://gear.embl.de/indigo) or compiled from source (see below).
-
-
-Installing Indigo
------------------
-
-`git clone --recursive https://github.com/tobiasrausch/indigo.git`
-
-`cd indigo/`
-
-`make all`
-
-Running Indigo
---------------
-
-`./src/indigo -g Danio_rerio.GRCz10.dna.toplevel.fa.gz del7.ab1`
+[Indigo](http://gear.embl.de/indigo) can be run online as a web application at [http://gear.embl.de/indigo](http://gear.embl.de/indigo).
