@@ -113,7 +113,16 @@
             <i class="fas fa-info-circle"></i>
             <span>PDF link is valid for 24h.</span>
           </span>
-          <div id="canvas-container"></div>
+          <div class="mt-4">
+            <h4>Decomposition plot</h4>
+            <div id="decomposition-chart"></div>
+
+            <h4>Alt1 Alignment</h4>
+            <div id="alignment-chart-1"></div>
+
+            <h4>Alt2 Alignment</h4>
+            <div id="alignment-chart-2"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -157,7 +166,7 @@
     crossorigin="anonymous"></script>
 
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.0.489/build/pdf.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-1.39.2.min.js"></script>
 
   <script src="static/js/indigo.js"></script>
 

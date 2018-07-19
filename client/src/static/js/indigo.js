@@ -23,7 +23,9 @@ const targetGenomes = document.getElementById('target-genome')
 const targetTabs = document.getElementById('target-tabs')
 const linkPdf = document.getElementById('link-pdf')
 const linkExample = document.getElementById('link-example')
-const canvasContainer = document.getElementById('canvas-container')
+const decompositionChart = document.getElementById('decomposition-chart')
+const alignmentChart1 = document.getElementById('alignment-chart-1')
+const alignmentChart2 = document.getElementById('alignment-chart-2')
 const resultContainer = document.getElementById('result-container')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
@@ -51,7 +53,7 @@ function run() {
     .post(`${API_URL}/upload`, formData)
     .then(res => {
       if (res.status === 200) {
-        handleSuccess(`${API_URL}/` + res.data.data.url)
+        handleSuccess(res.data.data)
       }
     })
     .catch(err => {
@@ -67,36 +69,168 @@ function run() {
     })
 }
 
-async function handleSuccess(pdfUrl) {
+function handleSuccess(data) {
   hideElement(resultInfo)
   hideElement(resultError)
   showElement(resultContainer)
 
-  canvasContainer.innerHTML = ''
+  linkPdf.href = `${API_URL}/${data.url}`
 
-  linkPdf.href = pdfUrl
-  const w = canvasContainer.clientWidth
-  const pdf = await pdfjsLib.getDocument({ url: pdfUrl })
+  renderDecompositionChart(decompositionChart, {
+    x: data.decomposition.x,
+    y: data.decomposition.y
+  })
 
-  for (let i = 1; i <= pdf.numPages; i += 1) {
-    const page = await pdf.getPage(i)
-    const canvas = document.createElement('canvas')
-    canvas.width = w
+  const alignmentCharactersPerLine = 80
 
-    const scale = canvas.width / page.getViewport(1).width
-    const viewport = page.getViewport(scale)
-    canvas.height = page.getViewport(1).height * scale
-    canvasContainer.appendChild(canvas)
-
-    const context = canvas.getContext('2d')
-
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport
-    }
-
-    page.render(renderContext)
+  const alt1 = {
+    sequence: ungapped(data.alt1align),
+    alignmenString: data.alt1align,
+    isReverseComplement: false,
+    chromosome: 'traceSequence',
+    startPosition: 1
   }
+
+  const ref1 = {
+    sequence: ungapped(data.ref1align),
+    alignmentString: data.ref1align,
+    isReverseComplement: data.ref1forward === 0,
+    chromosome: data.ref1chr,
+    startPosition: data.ref1pos
+  }
+
+  renderAlignmentChart(alignmentChart1, {
+    alt: alt1,
+    ref: ref1,
+    charactersPerLine: alignmentCharactersPerLine
+  })
+
+  const alt2 = {
+    sequence: ungapped(data.alt2align),
+    alignmenString: data.alt2align,
+    isReverseComplement: false,
+    chromosome: 'traceSequence',
+    startPosition: 1
+  }
+
+  const ref2 = {
+    sequence: ungapped(data.ref2align),
+    alignmentString: data.ref2align,
+    isReverseComplement: data.ref2forward === 0,
+    chromosome: data.ref2chr,
+    startPosition: data.ref2pos
+  }
+
+  renderAlignmentChart(alignmentChart2, {
+    alt: alt2,
+    ref: ref2,
+    charactersPerLine: alignmentCharactersPerLine
+  })
+}
+
+function renderDecompositionChart(container, data) {
+  const trace = {
+    x: data.x,
+    y: data.y,
+    mode: 'lines+markers'
+  }
+
+  const layout = {
+    title: data.title || '',
+    xaxis: {
+      title: 'InDel length (bp)',
+      zeroline: false
+    },
+    yaxis: {
+      title: 'Decomposition error'
+    }
+  }
+
+  Plotly.newPlot(container, [trace], layout)
+}
+
+function renderAlignmentChart(container, data) {
+  const { alt, ref, charactersPerLine } = data
+
+  const html = `<pre>
+${alignmentHtml(alt, ref, charactersPerLine)}
+</pre>`
+
+  container.innerHTML = html
+}
+
+function alignmentHtml(alt, ref, n) {
+  const altSequenceChunked = chunked(alt.sequence, n + 20).join('\n')
+  const refSequenceChunked = chunked(ref.sequence, n + 20).join('\n')
+
+  const numberWidth = Math.max(
+    String(alt.sequence.length).length,
+    String(ref.startPosition + ref.sequence.length - 1).length
+  )
+
+  const alignmentChunked = chunkedAlignment(
+    alt.alignmenString,
+    ref.alignmentString,
+    n
+  )
+
+  let pos1 = 1
+  let pos2 = ref.startPosition
+
+  let alignmentChunkedFormatted = ''
+  alignmentChunked.forEach(([seq1, matches, seq2], index) => {
+    alignmentChunkedFormatted += `Alt  ${String(pos1).padStart(
+      numberWidth
+    )} ${seq1}\n     ${' '.repeat(numberWidth)} ${matches}\nRef  ${String(
+      pos2
+    ).padStart(numberWidth)} ${seq2}\n\n`
+    pos1 += ungapped(seq1).length
+    pos2 += ungapped(seq2).length
+  })
+
+  return `>${alt.chromosome}:${alt.startPosition}-${alt.startPosition +
+    alt.sequence.length -
+    1}${alt.isReverseComplement ? '_reverse' : '_forward'}
+${altSequenceChunked}
+
+>${ref.chromosome}:${ref.startPosition}-${ref.startPosition +
+    ref.sequence.length -
+    1}${ref.isReverseComplement ? '_reverse' : '_forward'}
+${refSequenceChunked}
+
+${alignmentChunkedFormatted}`
+}
+
+function chunked(seq, n) {
+  const ret = []
+  for (let i = 0; i < seq.length; i += n) {
+    ret.push(seq.slice(i, i + n))
+  }
+  return ret
+}
+
+function chunkedAlignment(str1, str2, n) {
+  const ret = []
+  for (const [line1, line2] of zip(chunked(str1, n), chunked(str2, n))) {
+    let matchString = ''
+    for ([char1, char2] of zip(line1, line2)) {
+      matchString += char1 === char2 ? '|' : ' '
+    }
+    ret.push([line1, matchString, line2])
+  }
+  return ret
+}
+
+function zip(seq1, seq2) {
+  const ret = []
+  for (let i = 0; i < seq1.length; i += 1) {
+    ret.push([seq1[i], seq2[i]])
+  }
+  return ret
+}
+
+function ungapped(seq) {
+  return seq.replace(/-/g, '')
 }
 
 function showExample() {
