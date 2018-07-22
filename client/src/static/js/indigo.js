@@ -26,6 +26,7 @@ const linkExample = document.getElementById('link-example')
 const decompositionChart = document.getElementById('decomposition-chart')
 const alignmentChart1 = document.getElementById('alignment-chart-1')
 const alignmentChart2 = document.getElementById('alignment-chart-2')
+const traceChart = document.getElementById('trace-chart')
 const resultContainer = document.getElementById('result-container')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
@@ -75,6 +76,9 @@ function handleSuccess(data) {
   showElement(resultContainer)
 
   linkPdf.href = `${API_URL}/${data.url}`
+
+  const traceData = convertTraceData(data)
+  renderTraceChart(traceChart, traceData)
 
   renderDecompositionChart(decompositionChart, {
     x: data.decomposition.x,
@@ -126,6 +130,113 @@ function handleSuccess(data) {
     ref: ref2,
     charactersPerLine: alignmentCharactersPerLine
   })
+}
+
+function convertTraceData(data) {
+  const peaks = zip(data.pos, data.peakA, data.peakC, data.peakG, data.peakT)
+
+  const ret = []
+  const baseCallPat = /(\d+):([A-Z|]+)/
+
+  for (const [pos, peakA, peakC, peakG, peakT] of peaks) {
+    const record = {
+      position: pos,
+      peaks: {
+        A: peakA,
+        C: peakC,
+        G: peakG,
+        T: peakT
+      },
+      calls: null
+    }
+    const baseCall = data.basecalls[pos]
+    if (baseCall) {
+      const match = baseCallPat.exec(baseCall)
+      const [, pos, bases] = match
+      // FIXME (temporary) tracy won't output these in the future
+      if (!isDna(bases.replace(/\|/g, ''))) continue
+      record.calls = {
+        pos: +pos,
+        bases: bases.split('|')
+      }
+    }
+    ret.push(record)
+  }
+  return ret
+}
+
+function renderTraceChart(container, data, title) {
+  const traces = []
+  const calls = []
+
+  const colors = {
+    A: '#41bbc5',
+    C: '#792367',
+    G: '#1fc468',
+    T: '#ee3597'
+  }
+
+  for (const base of ['A', 'C', 'G', 'T']) {
+    calls.push({
+      x: [],
+      y: [],
+      xaxis: 'x',
+      yaxis: 'y2',
+      name: base,
+      mode: 'markers',
+      hoverinfo: 'x+text',
+      text: [],
+      marker: {
+        color: colors[base]
+      }
+    })
+    traces.push({
+      x: data.map(rec => rec.position),
+      y: data.map(rec => rec.peaks[base]),
+      name: base,
+      mode: 'lines',
+      line: {
+        color: colors[base]
+      }
+    })
+  }
+
+  const baseCalls = data.filter(rec => rec.calls !== null)
+  const baseToIndex = {
+    A: 0,
+    C: 1,
+    G: 2,
+    T: 3
+  }
+  for (const record of baseCalls) {
+    for (const base of record.calls.bases) {
+      const index = baseToIndex[base]
+      calls[index].x.push(record.position)
+      calls[index].y.push(base)
+      calls[index].text.push(`${base} (pos ${record.calls.pos})`)
+    }
+  }
+
+  const combined = calls.concat(traces)
+  const layout = {
+    title: title || '',
+    yaxis: {
+      title: 'signal',
+      domain: [0, 0.6]
+    },
+    yaxis2: {
+      title: 'basecalls',
+      domain: [0.7, 1],
+      categoryorder: 'category descending'
+    },
+    xaxis: {
+      title: 'position',
+      range: [0, 500],
+      zeroline: false
+    }
+  }
+
+  Plotly.newPlot(container, combined, layout)
 }
 
 function renderDecompositionChart(container, data) {
@@ -221,12 +332,21 @@ function chunkedAlignment(str1, str2, n) {
   return ret
 }
 
-function zip(seq1, seq2) {
+function zip() {
   const ret = []
-  for (let i = 0; i < seq1.length; i += 1) {
-    ret.push([seq1[i], seq2[i]])
+  for (let i = 0; i < arguments[0].length; i += 1) {
+    const record = [arguments[0][i]]
+    for (let j = 1; j < arguments.length; j += 1) {
+      record.push(arguments[j][i])
+    }
+    ret.push(record)
   }
   return ret
+}
+
+function isDna(seq) {
+  const dnaPat = /^[acgt]+$/i
+  return dnaPat.test(seq)
 }
 
 function ungapped(seq) {
