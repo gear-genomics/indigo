@@ -95,7 +95,10 @@ def upload_file():
             blexe = os.path.join(app.config['INDIGO'], "indigo.sh")
             return_code = call([blexe, fexpname, genome, outfile], stdout=log, stderr=err)
       if return_code != 0:
-         return jsonify(errors = [{"title": "Error in running Indigo!"}]), 400 
+         errInfo = "!"
+         with open(errfile, "r") as err:
+            errInfo = ": " + err.read()
+         return jsonify(errors = [{"title": "Error in running Indigo" + errInfo}]), 400
 
       # Send download url
       urlout = "download/" + uuidstr

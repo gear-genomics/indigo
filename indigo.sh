@@ -18,6 +18,9 @@ fi
 SCRIPT=$(readlink -f "$0")
 BASEDIR=$(dirname "$SCRIPT")
 
+# Terminate on error
+set -e
+
 # Create Align Output
 tracy decompose -f both -g ${2} -o ${3} ${1}  
 
