@@ -22,7 +22,6 @@ const targetChromatogramFile = document.getElementById('targetFileChromatogram')
 const targetGenomes = document.getElementById('target-genome')
 const targetTabs = document.getElementById('target-tabs')
 const linkPdf = document.getElementById('link-pdf')
-const linkExample = document.getElementById('link-example')
 const decompositionChart = document.getElementById('decomposition-chart')
 const alignmentChart1 = document.getElementById('alignment-chart-1')
 const alignmentChart2 = document.getElementById('alignment-chart-2')
@@ -354,8 +353,30 @@ function ungapped(seq) {
 }
 
 function showExample() {
-  resultLink.click()
-  handleSuccess(linkExample.href)
+    resultLink.click()
+    const formData = new FormData()
+    formData.append('showExample', 'showExample')
+    hideElement(resultContainer)
+    hideElement(resultError)
+    showElement(resultInfo)
+    axios
+	.post(`${API_URL}/upload`, formData)
+	.then(res => {
+	    if (res.status === 200) {
+		handleSuccess(res.data.data)
+	    }
+	})
+	.catch(err => {
+	    let errorMessage = err
+	    if (err.response) {
+		errorMessage = err.response.data.errors
+		    .map(error => error.title)
+		    .join('; ')
+	    }
+	    hideElement(resultInfo)
+	    showElement(resultError)
+	    resultError.querySelector('#error-message').textContent = errorMessage
+	})
 }
 
 function showElement(element) {
