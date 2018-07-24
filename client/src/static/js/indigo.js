@@ -235,7 +235,11 @@ function renderTraceChart(container, data, title) {
     }
   }
 
-  Plotly.newPlot(container, combined, layout)
+  const config = {
+    displayModeBar: true
+  }
+
+  Plotly.newPlot(container, combined, layout, config)
 }
 
 function renderDecompositionChart(container, data) {
@@ -256,7 +260,11 @@ function renderDecompositionChart(container, data) {
     }
   }
 
-  Plotly.newPlot(container, [trace], layout)
+  const config = {
+    displayModeBar: true
+  }
+
+  Plotly.newPlot(container, [trace], layout, config)
 }
 
 function renderAlignmentChart(container, data) {
@@ -353,30 +361,30 @@ function ungapped(seq) {
 }
 
 function showExample() {
-    resultLink.click()
-    const formData = new FormData()
-    formData.append('showExample', 'showExample')
-    hideElement(resultContainer)
-    hideElement(resultError)
-    showElement(resultInfo)
-    axios
-	.post(`${API_URL}/upload`, formData)
-	.then(res => {
-	    if (res.status === 200) {
-		handleSuccess(res.data.data)
-	    }
-	})
-	.catch(err => {
-	    let errorMessage = err
-	    if (err.response) {
-		errorMessage = err.response.data.errors
-		    .map(error => error.title)
-		    .join('; ')
-	    }
-	    hideElement(resultInfo)
-	    showElement(resultError)
-	    resultError.querySelector('#error-message').textContent = errorMessage
-	})
+  resultLink.click()
+  const formData = new FormData()
+  formData.append('showExample', 'showExample')
+  hideElement(resultContainer)
+  hideElement(resultError)
+  showElement(resultInfo)
+  axios
+    .post(`${API_URL}/upload`, formData)
+    .then(res => {
+      if (res.status === 200) {
+        handleSuccess(res.data.data)
+      }
+    })
+    .catch(err => {
+      let errorMessage = err
+      if (err.response) {
+        errorMessage = err.response.data.errors
+          .map(error => error.title)
+          .join('; ')
+      }
+      hideElement(resultInfo)
+      showElement(resultError)
+      resultError.querySelector('#error-message').textContent = errorMessage
+    })
 }
 
 function showElement(element) {
