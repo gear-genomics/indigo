@@ -17,6 +17,8 @@ const exampleButton = document.getElementById('btn-example')
 exampleButton.addEventListener('click', showExample)
 
 const inputFile = document.getElementById('inputFile')
+const leftTrim = document.querySelector('#leftTrim')
+const rightTrim = document.querySelector('#rightTrim')
 const targetFastaFile = document.getElementById('targetFileFasta')
 const targetChromatogramFile = document.getElementById('targetFileChromatogram')
 const targetGenomes = document.getElementById('target-genome')
@@ -32,8 +34,13 @@ const resultError = document.getElementById('result-error')
 
 // TODO client-side validation
 function run() {
+  const lTrim = Number.parseInt(leftTrim.value, 10)
+  const rTrim = Number.parseInt(rightTrim.value, 10)
+    
   const formData = new FormData()
   formData.append('queryFile', inputFile.files[0])
+  formData.append('leftTrim', lTrim)
+  formData.append('rightTrim', rTrim)
   const target = targetTabs.querySelector('a.active').id
 
   if (target.startsWith('target-genome')) {

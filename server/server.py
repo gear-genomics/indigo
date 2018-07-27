@@ -46,6 +46,10 @@ def upload_file():
       if not os.path.exists(sf):
          os.makedirs(sf)
 
+      # Default trim sizes
+      ltrim = 50
+      rtrim = 50
+
       # Experiment
       if 'showExample' in request.form.keys():
          fexpname = os.path.join(INDIGOWS, "sample.abi")
@@ -61,6 +65,12 @@ def upload_file():
          fexpname = os.path.join(sf, "indigo_" + uuidstr + "_" + secure_filename(fexp.filename))
          fexp.save(fexpname)
 
+         # Trim size
+         if 'leftTrim' in request.form.keys():
+            ltrim = int(request.form['leftTrim'])
+         if 'rightTrim' in request.form.keys():
+            rtrim = int(request.form['rightTrim'])
+         
          # Genome
          if 'genome' in request.form.keys():
             genome = request.form['genome']
@@ -93,7 +103,7 @@ def upload_file():
       with open(logfile, "w") as log:
          with open(errfile, "w") as err:
             blexe = os.path.join(app.config['INDIGO'], "indigo.sh")
-            return_code = call([blexe, fexpname, genome, outfile], stdout=log, stderr=err)
+            return_code = call([blexe, fexpname, genome, str(ltrim), str(rtrim), outfile], stdout=log, stderr=err)
       if return_code != 0:
          errInfo = "!"
          with open(errfile, "r") as err:
