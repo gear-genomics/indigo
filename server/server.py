@@ -19,7 +19,7 @@ app.config['UPLOAD_FOLDER'] = os.path.join(app.config['INDIGO'], "data")
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024   #maximum of 8MB
 
 def allowed_file(filename):
-   return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['ab1', 'pdf', 'fa'])
+   return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf','abi','ab1','ab!','ab', 'pdf', 'fa'])
 
 uuid_re = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
 def is_valid_uuid(s):
