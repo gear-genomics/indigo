@@ -5,7 +5,7 @@ import subprocess
 import argparse
 import json
 from subprocess import call
-from flask import Flask, send_file, flash, render_template, request, redirect, url_for, jsonify
+from flask import Flask, send_file, send_from_directory, flash, render_template, request, redirect, url_for, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
@@ -116,6 +116,10 @@ def upload_file():
       dt["url"] = urlout
       return jsonify(data=dt), 200
    return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400 
-   
+
+@app.route('/api/v1/genomeindex', methods=['POST'])
+def genomeind():
+    return send_from_directory(os.path.join(INDIGOWS, "../fm"),"genomeindexindex.json"), 200
+
 if __name__ == '__main__':
    app.run(host='0.0.0.0', port=3300, debug=True, threaded=True)
