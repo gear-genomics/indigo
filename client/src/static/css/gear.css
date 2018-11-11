@@ -27,6 +27,11 @@ main {
   padding-bottom: 75px;
 }
 
+div#help-tab {
+  padding: 30px;
+  font-weight: 400;
+}
+
 .embl-red {
   color: #e2001a;
 }

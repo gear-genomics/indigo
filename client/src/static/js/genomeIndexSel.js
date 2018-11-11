@@ -3,11 +3,7 @@ const API_URL = process.env.API_URL
 const targetGenomes = document.getElementById('target-genome')
 
 document.addEventListener("DOMContentLoaded", function() {
-  // Send different data to avoid caching
-  var dt = new Date();
-  var utcDate = dt.toUTCString();
   const formData = new FormData()
-  formData.append('stufferData', formData)
   axios
     .post(`${API_URL}/genomeindex`, formData)
     .then(res => {
