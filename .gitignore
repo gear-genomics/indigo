@@ -2,6 +2,7 @@ fm/
 data/
 server/nohup.out
 server/venv/
+server/run.sh
 *.pyc
 
 # Backup files
