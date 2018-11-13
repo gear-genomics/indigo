@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
     })
 });
 
-async function handleSuccess(res) {
+function handleSuccess(res) {
   var rhtml = '<select class="form-control" id="genome-select">\n'
   for (var i = 0; i < res.length; i++) {
     rhtml += '  <option value="' + res[i].file + '"'
