@@ -236,7 +236,7 @@ function renderTraceChart(container, data, title) {
       categoryorder: 'category descending'
     },
     xaxis: {
-      title: 'position',
+      title: 'Trace signal position',
       range: [0, 500],
       zeroline: false
     }
