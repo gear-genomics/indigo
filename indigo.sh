@@ -22,7 +22,7 @@ BASEDIR=$(dirname "$SCRIPT")
 set -e
 
 # Create Align Output
-tracy decompose -f both -g ${2} -l ${3} -r ${4} -o ${5} ${1}  
+tracy decompose -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}  
 
 # Plot results
 Rscript ${BASEDIR}/R/indigo.R ${5}

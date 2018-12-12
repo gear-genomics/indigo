@@ -84,6 +84,19 @@ for(i in seq(1, length(lines), linpage)) {
 }
 close(con)
 
+filename=paste0(outpdf, ".align3")
+con = file(filename, open="r")
+lines = readLines(con)
+linpage = nlin
+if (length(lines) > nlin) {
+ npages = ceiling(length(lines) / nlin)
+ linpage = length(lines) / npages
+}
+for(i in seq(1, length(lines), linpage)) {
+ str = paste(lines[i:(min(i+linpage, length(lines)))], collapse="\n")
+ textplot(str)
+}
+close(con)
 
 dev.off()
 
