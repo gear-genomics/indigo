@@ -112,7 +112,8 @@ function handleSuccess(data) {
   renderAlignmentChart(alignmentChart1, {
     alt: alt1,
     ref: ref1,
-    charactersPerLine: alignmentCharactersPerLine
+    charactersPerLine: alignmentCharactersPerLine,
+    score: data.align1score ? data.align1score : undefined
   })
 
   const alt2 = {
@@ -134,7 +135,8 @@ function handleSuccess(data) {
   renderAlignmentChart(alignmentChart2, {
     alt: alt2,
     ref: ref2,
-    charactersPerLine: alignmentCharactersPerLine
+    charactersPerLine: alignmentCharactersPerLine,
+    score: data.align2score ? data.align2score : undefined
   })
 }
 
@@ -275,10 +277,14 @@ function renderDecompositionChart(container, data) {
 }
 
 function renderAlignmentChart(container, data) {
-  const { alt, ref, charactersPerLine } = data
+  const { alt, ref, charactersPerLine, score } = data
 
   const html = `<pre>
-${alignmentHtml(alt, ref, charactersPerLine)}
+${score ? `Alignment score: ${score}\n\n` : ''}${alignmentHtml(
+    alt,
+    ref,
+    charactersPerLine
+  )}
 </pre>`
 
   container.innerHTML = html
