@@ -36,7 +36,7 @@ const resultError = document.getElementById('result-error')
 function run() {
   const lTrim = Number.parseInt(leftTrim.value, 10)
   const rTrim = Number.parseInt(rightTrim.value, 10)
-    
+
   const formData = new FormData()
   formData.append('queryFile', inputFile.files[0])
   formData.append('leftTrim', lTrim)
@@ -300,7 +300,9 @@ function alignmentHtml(alt, ref, n) {
   )
 
   let pos1 = 1
-  let pos2 = ref.startPosition
+  let pos2 = ref.isReverseComplement
+    ? ref.startPosition + ref.sequence.length - 1
+    : ref.startPosition
 
   let alignmentChunkedFormatted = ''
   alignmentChunked.forEach(([seq1, matches, seq2], index) => {
@@ -310,7 +312,11 @@ function alignmentHtml(alt, ref, n) {
       pos2
     ).padStart(numberWidth)} ${seq2}\n\n`
     pos1 += ungapped(seq1).length
-    pos2 += ungapped(seq2).length
+    if (ref.isReverseComplement) {
+      pos2 -= ungapped(seq2).length
+    } else {
+      pos2 += ungapped(seq2).length
+    }
   })
 
   return `>${alt.chromosome}:${alt.startPosition}-${alt.startPosition +
