@@ -44,6 +44,7 @@ p1 = p1 + geom_vline(aes(xintercept = vpos), color="#E5F5F9", size=sizeF, na.rm=
 p1 = p1 + geom_line(aes(color=variable, group=variable), size=0.5)
 p1 = p1 + facet_wrap(~blocknum, scales="free", ncol=1, nrow=scaleF)
 p1 = p1 + geom_text(aes(x=pos, y=textypos, label=primary), size=sizeF, na.rm=T)
+p1 = p1 + scale_colour_manual(values=c("#a6d3a6", "#a6a6ff", "#a6a6a6", "#ffa6a6"))
 if (seccount) {
    p1 = p1 + geom_text(aes(x=pos, y=textySec, label=secondary), size=sizeF, na.rm=T)
 }
