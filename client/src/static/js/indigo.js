@@ -84,7 +84,7 @@ function handleSuccess(data) {
   linkPdf.href = `${API_URL}/${data.url}`
 
   const traceData = convertTraceData(data)
-  renderTraceChart(traceChart, traceData)
+  renderTraceChart(traceChart, traceData, data.chartConfig)
 
   renderDecompositionChart(decompositionChart, {
     x: data.decomposition.x,
@@ -173,15 +173,15 @@ function convertTraceData(data) {
   return ret
 }
 
-function renderTraceChart(container, data, title) {
+function renderTraceChart(container, data, chartConfig, title) {
   const traces = []
   const calls = []
 
   const colors = {
-    A: '#41bbc5',
-    C: '#792367',
-    G: '#1fc468',
-    T: '#ee3597'
+    A: '#a6d3a6',
+    C: '#a6a6ff',
+    G: '#a6a6a6',
+    T: '#ffa6a6'
   }
 
   for (const base of ['A', 'C', 'G', 'T']) {
@@ -226,6 +226,17 @@ function renderTraceChart(container, data, title) {
   }
 
   const combined = calls.concat(traces)
+
+  let xRange = [0, 500]
+  if (
+    chartConfig &&
+    chartConfig.x &&
+    chartConfig.x.axis &&
+    chartConfig.x.axis.range
+  ) {
+    xRange = chartConfig.x.axis.range
+  }
+
   const layout = {
     title: title || '',
     yaxis: {
@@ -239,7 +250,7 @@ function renderTraceChart(container, data, title) {
     },
     xaxis: {
       title: 'Trace signal position',
-      range: [0, 500],
+      range: xRange,
       zeroline: false
     }
   }
