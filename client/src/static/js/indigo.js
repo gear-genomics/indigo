@@ -27,6 +27,7 @@ const linkPdf = document.getElementById('link-pdf')
 const decompositionChart = document.getElementById('decomposition-chart')
 const alignmentChart1 = document.getElementById('alignment-chart-1')
 const alignmentChart2 = document.getElementById('alignment-chart-2')
+const alignmentChart3 = document.getElementById('alignment-chart-3')
 const traceChart = document.getElementById('trace-chart')
 const resultContainer = document.getElementById('result-container')
 const resultInfo = document.getElementById('result-info')
@@ -93,12 +94,13 @@ function handleSuccess(data) {
 
   const alignmentCharactersPerLine = 80
 
-  const alt1 = {
+  let alt1 = {
     sequence: ungapped(data.alt1align),
     alignmenString: data.alt1align,
     isReverseComplement: false,
-    chromosome: 'traceSequence',
-    startPosition: 1
+    chromosome: 'Alt1',
+    startPosition: 1,
+    label: 'Alt1'
   }
 
   const ref1 = {
@@ -106,7 +108,8 @@ function handleSuccess(data) {
     alignmentString: data.ref1align,
     isReverseComplement: data.ref1forward === 0,
     chromosome: data.ref1chr,
-    startPosition: data.ref1pos
+    startPosition: data.ref1pos,
+    label: 'Ref'
   }
 
   renderAlignmentChart(alignmentChart1, {
@@ -116,12 +119,13 @@ function handleSuccess(data) {
     score: data.align1score ? data.align1score : undefined
   })
 
-  const alt2 = {
+  let alt2 = {
     sequence: ungapped(data.alt2align),
     alignmenString: data.alt2align,
     isReverseComplement: false,
-    chromosome: 'traceSequence',
-    startPosition: 1
+    chromosome: 'Alt2',
+    startPosition: 1,
+    label: 'Alt2'
   }
 
   const ref2 = {
@@ -129,7 +133,8 @@ function handleSuccess(data) {
     alignmentString: data.ref2align,
     isReverseComplement: data.ref2forward === 0,
     chromosome: data.ref2chr,
-    startPosition: data.ref2pos
+    startPosition: data.ref2pos,
+    label: 'Ref'
   }
 
   renderAlignmentChart(alignmentChart2, {
@@ -138,6 +143,31 @@ function handleSuccess(data) {
     charactersPerLine: alignmentCharactersPerLine,
     score: data.align2score ? data.align2score : undefined
   })
+
+  // alt1 = {
+  //   sequence: ungapped(data.allele1align),
+  //   alignmenString: data.allele1align,
+  //   isReverseComplement: false,
+  //   chromosome: 'Alt1',
+  //   startPosition: 1,
+  //   label: 'Alt1'
+  // }
+
+  // alt2 = {
+  //   sequence: ungapped(data.allele2align),
+  //   alignmenString: data.allele2align,
+  //   isReverseComplement: false,
+  //   chromosome: 'Alt2',
+  //   startPosition: 1,
+  //   label: 'Alt2'
+  // }
+
+  // renderAlignmentChart(alignmentChart3, {
+  //   alt: alt1,
+  //   ref: alt2,
+  //   charactersPerLine: alignmentCharactersPerLine,
+  //   score: data.align3score ? data.align3score : undefined
+  // })
 }
 
 function convertTraceData(data) {
@@ -305,6 +335,8 @@ function alignmentHtml(alt, ref, n) {
   const altSequenceChunked = chunked(alt.sequence, n + 20).join('\n')
   const refSequenceChunked = chunked(ref.sequence, n + 20).join('\n')
 
+  const labelWidth = Math.max(alt.label.length, ref.label.length)
+
   const numberWidth = Math.max(
     String(alt.sequence.length).length,
     String(ref.startPosition + ref.sequence.length - 1).length
@@ -323,11 +355,13 @@ function alignmentHtml(alt, ref, n) {
 
   let alignmentChunkedFormatted = ''
   alignmentChunked.forEach(([seq1, matches, seq2], index) => {
-    alignmentChunkedFormatted += `Alt  ${String(pos1).padStart(
+    alignmentChunkedFormatted += `${alt.label.padStart(labelWidth)}  ${String(
+      pos1
+    ).padStart(numberWidth)} ${seq1}\n${' '.repeat(
+      labelWidth + numberWidth + 2
+    )} ${matches}\n${ref.label.padStart(labelWidth)}  ${String(pos2).padStart(
       numberWidth
-    )} ${seq1}\n     ${' '.repeat(numberWidth)} ${matches}\nRef  ${String(
-      pos2
-    ).padStart(numberWidth)} ${seq2}\n\n`
+    )} ${seq2}\n\n`
     pos1 += ungapped(seq1).length
     if (ref.isReverseComplement) {
       pos2 -= ungapped(seq2).length
