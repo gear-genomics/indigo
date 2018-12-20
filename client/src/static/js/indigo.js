@@ -319,7 +319,6 @@ ${score ? `Alignment score: ${score}\n\n` : ''}${alignmentHtml(
 }
 
 function alignmentHtml(alt, ref, n) {
-  console.log(alt, ref, n)
   const altSequenceChunked = chunked(alt.sequence, n + 20).join('\n')
   const refSequenceChunked = chunked(ref.sequence, n + 20).join('\n')
 
