@@ -94,9 +94,9 @@ function handleSuccess(data) {
 
   const alignmentCharactersPerLine = 80
 
-  let alt1 = {
+  const alt1 = {
     sequence: ungapped(data.alt1align),
-    alignmenString: data.alt1align,
+    alignmentString: data.alt1align,
     isReverseComplement: false,
     chromosome: 'Alt1',
     startPosition: 1,
@@ -120,9 +120,9 @@ function handleSuccess(data) {
     score: data.align1score ? data.align1score : undefined
   })
 
-  let alt2 = {
+  const alt2 = {
     sequence: ungapped(data.alt2align),
-    alignmenString: data.alt2align,
+    alignmentString: data.alt2align,
     isReverseComplement: false,
     chromosome: 'Alt2',
     startPosition: 1,
@@ -146,30 +146,15 @@ function handleSuccess(data) {
     score: data.align2score ? data.align2score : undefined
   })
 
-  // alt1 = {
-  //   sequence: ungapped(data.allele1align),
-  //   alignmenString: data.allele1align,
-  //   isReverseComplement: false,
-  //   chromosome: 'Alt1',
-  //   startPosition: 1,
-  //   label: 'Alt1'
-  // }
+  alt1.alignmentString = data.allele1align
+  alt2.alignmentString = data.allele2align
 
-  // alt2 = {
-  //   sequence: ungapped(data.allele2align),
-  //   alignmenString: data.allele2align,
-  //   isReverseComplement: false,
-  //   chromosome: 'Alt2',
-  //   startPosition: 1,
-  //   label: 'Alt2'
-  // }
-
-  // renderAlignmentChart(alignmentChart3, {
-  //   alt: alt1,
-  //   ref: alt2,
-  //   charactersPerLine: alignmentCharactersPerLine,
-  //   score: data.align3score ? data.align3score : undefined
-  // })
+  renderAlignmentChart(alignmentChart3, {
+    alt: alt1,
+    ref: alt2,
+    charactersPerLine: alignmentCharactersPerLine,
+    score: data.align3score ? data.align3score : undefined
+  })
 }
 
 function convertTraceData(data) {
@@ -334,6 +319,7 @@ ${score ? `Alignment score: ${score}\n\n` : ''}${alignmentHtml(
 }
 
 function alignmentHtml(alt, ref, n) {
+  console.log(alt, ref, n)
   const altSequenceChunked = chunked(alt.sequence, n + 20).join('\n')
   const refSequenceChunked = chunked(ref.sequence, n + 20).join('\n')
 
@@ -345,7 +331,7 @@ function alignmentHtml(alt, ref, n) {
   )
 
   const alignmentChunked = chunkedAlignment(
-    alt.alignmenString,
+    alt.alignmentString,
     ref.alignmentString,
     n
   )
@@ -356,7 +342,7 @@ function alignmentHtml(alt, ref, n) {
     : ref.startPosition
 
   let alignmentChunkedFormatted = ''
-  alignmentChunked.forEach(([seq1, matches, seq2], index) => {
+  alignmentChunked.forEach(([seq1, matches, seq2]) => {
     alignmentChunkedFormatted += `${alt.label.padStart(labelWidth)}  ${String(
       pos1
     ).padStart(numberWidth)} ${seq1}\n${' '.repeat(
