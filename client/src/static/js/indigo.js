@@ -100,7 +100,8 @@ function handleSuccess(data) {
     isReverseComplement: false,
     chromosome: 'Alt1',
     startPosition: 1,
-    label: 'Alt1'
+    label: 'Alt1',
+    alleleFraction: data.allele1fraction
   }
 
   const ref1 = {
@@ -125,7 +126,8 @@ function handleSuccess(data) {
     isReverseComplement: false,
     chromosome: 'Alt2',
     startPosition: 1,
-    label: 'Alt2'
+    label: 'Alt2',
+    alleleFraction: data.allele2fraction
   }
 
   const ref2 = {
@@ -372,12 +374,20 @@ function alignmentHtml(alt, ref, n) {
 
   return `>${alt.chromosome}:${alt.startPosition}-${alt.startPosition +
     alt.sequence.length -
-    1}${alt.isReverseComplement ? '_reverse' : '_forward'}
+    1}${alt.isReverseComplement ? '_reverse' : '_forward'}${
+    alt.alleleFraction
+      ? ` (Estimated allelic fraction: ${alt.alleleFraction})`
+      : ''
+  }
 ${altSequenceChunked}
 
 >${ref.chromosome}:${ref.startPosition}-${ref.startPosition +
     ref.sequence.length -
-    1}${ref.isReverseComplement ? '_reverse' : '_forward'}
+    1}${ref.isReverseComplement ? '_reverse' : '_forward'}${
+    ref.alleleFraction
+      ? ` (Estimated allelic fraction: ${ref.alleleFraction})`
+      : ''
+  }
 ${refSequenceChunked}
 
 ${alignmentChunkedFormatted}`
