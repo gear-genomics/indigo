@@ -8,3 +8,70 @@ Indigo Online Method
 --------------------
 
 [Indigo](http://gear.embl.de/indigo) can be run online as a web application at [http://gear.embl.de/indigo](http://gear.embl.de/indigo).
+
+Dependencies
+------------
+
+Indigo requires Tracy, please install first:
+
+`https://github.com/gear-genomics/tracy`
+
+Indigo requires R, please install first:
+
+`sudo apt install r-base r-recommended`
+
+`sudo R`
+
+`install.packages("gplots")`
+
+`install.packages("ggplot2")`
+
+`q()`
+
+Install a local copy for testing
+--------------------------------
+
+`git clone https://github.com/gear-genomics/indigo.git`
+
+`cd indigo`
+
+Setup and run the server
+------------------------
+
+The server runs in a terminal
+
+Install the dependencies:
+
+`sudo apt install python python-pip`
+
+`pip install flask flask_cors`
+
+Start the server:
+
+`cd PATH_TO_INDIGO/indigo`
+
+`export PATH=$PATH:/PATH_TO_TRACY/tracy/bin`
+
+`echo $PATH`
+
+`python server/server.py`
+
+Setup and run the client
+------------------------
+
+The client requires a different terminal
+
+Install the dependencies:
+
+`cd PATH_TO_INDIGO/indigo/client`
+
+`sudo apt install npm`
+
+`sudo npm install`
+
+Start the client:
+
+`cd PATH_TO_INDIGO/indigo/client`
+
+`npm run dev`
+

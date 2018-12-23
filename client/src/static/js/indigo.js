@@ -1,5 +1,7 @@
 const API_URL = process.env.API_URL
 
+var traceView = require('./traceView');
+
 $('#mainTab a').on('click', function(e) {
   e.preventDefault()
   $(this).tab('show')
@@ -55,6 +57,7 @@ function run() {
 
   hideElement(resultContainer)
   hideElement(resultError)
+  traceView.deleteContent()
   showElement(resultInfo)
 
   axios
@@ -72,6 +75,7 @@ function run() {
           .join('; ')
       }
       hideElement(resultInfo)
+      traceView.deleteContent()
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
     })
@@ -83,6 +87,8 @@ function handleSuccess(data) {
   showElement(resultContainer)
 
   linkPdf.href = `${API_URL}/${data.url}`
+
+  traceView.displayData(data)
 
   const traceData = convertTraceData(data)
   renderTraceChart(traceChart, traceData, data.chartConfig)
@@ -425,6 +431,7 @@ function showExample() {
   formData.append('showExample', 'showExample')
   hideElement(resultContainer)
   hideElement(resultError)
+  traceView.deleteContent()
   showElement(resultInfo)
   axios
     .post(`${API_URL}/upload`, formData)
@@ -441,6 +448,7 @@ function showExample() {
           .join('; ')
       }
       hideElement(resultInfo)
+      traceView.deleteContent()
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
     })
