@@ -29,6 +29,7 @@ const alignmentChart1 = document.getElementById('alignment-chart-1')
 const alignmentChart2 = document.getElementById('alignment-chart-2')
 const alignmentChart3 = document.getElementById('alignment-chart-3')
 const traceChart = document.getElementById('trace-chart')
+const variantsTable = document.getElementById('variants-table')
 const resultContainer = document.getElementById('result-container')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
@@ -155,6 +156,8 @@ function handleSuccess(data) {
     charactersPerLine: alignmentCharactersPerLine,
     score: data.align3score ? data.align3score : undefined
   })
+
+  renderVariantsTable(variantsTable, data.variants)
 }
 
 function convertTraceData(data) {
@@ -396,6 +399,39 @@ function chunkedAlignment(str1, str2, n) {
     ret.push([line1, matchString, line2])
   }
   return ret
+}
+
+function renderVariantsTable(container, variants) {
+  table(variants, container)
+}
+
+function table(tableData, parent) {
+  const html = `
+    <table class="table table-sm table-striped table-hover">
+      <thead>
+        <tr>
+          ${tableData.columns
+            .map(title => `<th scope="col">${title}</th>`)
+            .join('')}
+        </tr>
+      </thead>
+      <tbody>
+        ${tableData.rows
+          .map(
+            row => `<tr>
+            ${row
+              .map(
+                (value, i) =>
+                  `<td title="${tableData.columns[i]}">${value}</td>`
+              )
+              .join('')}
+          </tr>`
+          )
+          .join('')}
+      </tbody>
+    </table>
+  `
+  parent.innerHTML = html
 }
 
 function zip() {
