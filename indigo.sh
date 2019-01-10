@@ -22,7 +22,12 @@ BASEDIR=$(dirname "$SCRIPT")
 set -e
 
 # Create Align Output
-tracy decompose -v -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}  
+if [[ $2 == *.fa.gz ]]
+then
+    tracy decompose -v -a ${2} -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}
+else
+    tracy decompose -v -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}
+fi
 
 # Plot results
 Rscript ${BASEDIR}/R/indigo.R ${5}
