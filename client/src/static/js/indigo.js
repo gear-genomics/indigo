@@ -402,27 +402,30 @@ function chunkedAlignment(str1, str2, n) {
 }
 
 function renderVariantsTable(container, variants) {
-  table(variants, container)
-}
-
-function table(tableData, parent) {
   const html = `
     <table class="table table-sm table-striped table-hover">
       <thead>
         <tr>
-          ${tableData.columns
+          <th scope="col"></th>
+          ${variants.columns
             .map(title => `<th scope="col">${title}</th>`)
             .join('')}
         </tr>
       </thead>
       <tbody>
-        ${tableData.rows
+        ${variants.rows
           .map(
-            row => `<tr>
+            (row, i) => `<tr>
+            <td title="Show in trace viewer">
+              <i
+                class="fas fa-chart-line"
+                style="cursor: pointer"
+                onclick="showVariantInViewer(${i})"
+              ></i>
+            </td>
             ${row
               .map(
-                (value, i) =>
-                  `<td title="${tableData.columns[i]}">${value}</td>`
+                (value, j) => `<td title="${variants.columns[j]}">${value}</td>`
               )
               .join('')}
           </tr>`
@@ -431,7 +434,16 @@ function table(tableData, parent) {
       </tbody>
     </table>
   `
-  parent.innerHTML = html
+  container.innerHTML = html
+
+  function showVariantInViewer(index) {
+    Plotly.relayout(traceChart, {
+      'xaxis.range': variants.xranges[index]
+    })
+    traceChart.scrollIntoView()
+  }
+
+  window.showVariantInViewer = showVariantInViewer
 }
 
 function zip() {
