@@ -504,6 +504,7 @@ function showExample() {
 
 window.downloadBcf = downloadBcf
 function downloadBcf() {
+  // TODO: better bcf file name
   saveAs(`${API_URL}/${downloadUrl}/bcf`, 'indigo-variants.bcf')
 }
 
