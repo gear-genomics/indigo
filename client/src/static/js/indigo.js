@@ -1,9 +1,13 @@
+import { saveAs } from 'file-saver'
+
 const API_URL = process.env.API_URL
 
 $('#mainTab a').on('click', function(e) {
   e.preventDefault()
   $(this).tab('show')
 })
+
+$('[data-toggle="tooltip"]').tooltip()
 
 const resultLink = document.getElementById('link-results')
 
@@ -33,6 +37,7 @@ const variantsTable = document.getElementById('variants-table')
 const resultContainer = document.getElementById('result-container')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
+let downloadUrl
 
 // TODO client-side validation
 function run() {
@@ -83,7 +88,9 @@ function handleSuccess(data) {
   hideElement(resultError)
   showElement(resultContainer)
 
-  linkPdf.href = `${API_URL}/${data.url}`
+  // needed in downloadBcf() as well
+  downloadUrl = data.url
+  linkPdf.href = `${API_URL}/${downloadUrl}/pdf`
 
   const traceData = convertTraceData(data)
   renderTraceChart(traceChart, traceData, data.chartConfig)
@@ -198,10 +205,10 @@ function renderTraceChart(container, data, chartConfig, title) {
   const calls = []
 
   const colors = {
-    A: '#a6d3a6',
-    C: '#a6a6ff',
-    G: '#a6a6a6',
-    T: '#ffa6a6'
+    A: '#4daf4a',
+    C: '#377eb8',
+    G: '#212121',
+    T: '#e41a1c'
   }
 
   for (const base of ['A', 'C', 'G', 'T']) {
@@ -215,7 +222,8 @@ function renderTraceChart(container, data, chartConfig, title) {
       hoverinfo: 'x+text',
       text: [],
       marker: {
-        color: colors[base]
+        color: colors[base],
+        size: 10
       }
     })
     traces.push({
@@ -393,7 +401,7 @@ function chunkedAlignment(str1, str2, n) {
   const ret = []
   for (const [line1, line2] of zip(chunked(str1, n), chunked(str2, n))) {
     let matchString = ''
-    for ([char1, char2] of zip(line1, line2)) {
+    for (const [char1, char2] of zip(line1, line2)) {
       matchString += char1 === char2 ? '|' : ' '
     }
     ret.push([line1, matchString, line2])
@@ -492,6 +500,20 @@ function showExample() {
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
     })
+}
+
+window.downloadBcf = downloadBcf
+function downloadBcf() {
+  saveAs(`${API_URL}/${downloadUrl}/bcf`, 'indigo-variants.bcf')
+}
+
+window.handleTocChange = handleTocChange
+function handleTocChange(select) {
+  const targetId = select.value
+  if (targetId !== '#') {
+    document.getElementById(targetId).scrollIntoView()
+    select.value = '#'
+  }
 }
 
 function showElement(element) {

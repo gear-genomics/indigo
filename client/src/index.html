@@ -19,7 +19,7 @@
     />
     <link
       rel="stylesheet"
-      href="https://use.fontawesome.com/releases/v5.0.6/css/all.css"
+      href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
     />
     <link rel="stylesheet" href="static/css/gear.css" />
   </head>
@@ -164,19 +164,54 @@
             <i class="fas fa-fire"></i> <span id="error-message"></span>
           </div>
           <div id="result-container" class="d-none">
-            <a
-              id="link-pdf"
-              class="btn btn-outline-primary"
-              href="#"
-              target="_blank"
-              role="button"
-            >
-              <i class="far fa-file" style="margin-right: 5px;"></i> View PDF
-            </a>
-            <span class="alert alert-light" role="alert">
-              <i class="fas fa-info-circle"></i>
-              <span>PDF link is valid for 24h.</span>
-            </span>
+            <div class="form-row align-items-center">
+              <div class="col-auto">
+                <a
+                  id="link-pdf"
+                  class="btn btn-outline-primary"
+                  href="#"
+                  target="_blank"
+                  role="button"
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title="PDF link is valid for 24h."
+                >
+                  <i class="far fa-file" style="margin-right: 5px;"></i> View
+                  PDF
+                </a>
+              </div>
+              <div class="col-auto">
+                <button
+                  class="btn btn-outline-primary"
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title="Download variants in BCF format"
+                  onclick="downloadBcf()"
+                >
+                  <i
+                    class="fas fa-file-download"
+                    style="margin-right: 5px;"
+                  ></i>
+                  Variants BCF
+                </button>
+              </div>
+              <div class="col-auto">
+                <select
+                  class="form-control"
+                  id="tocSelect"
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title="Table of contents"
+                  onchange="handleTocChange(this)"
+                >
+                  <option value="#">-- Please select --</option>
+                  <option value="trace-chart">Trace & basecall viewer</option>
+                  <option value="alignment-chart-1">Alignments</option>
+                  <option value="variants-table">Variants</option>
+                  <option value="decomposition-chart">Decomposition</option>
+                </select>
+              </div>
+            </div>
             <div class="mt-4">
               <h4>Trace & basecall viewer</h4>
               <div class="text-secondary">
@@ -194,6 +229,18 @@
               </div>
               <div id="trace-chart"></div>
 
+              <h4>Alt1 Alignment</h4>
+              <div id="alignment-chart-1"></div>
+
+              <h4>Alt2 Alignment</h4>
+              <div id="alignment-chart-2"></div>
+
+              <h4>Alt1 vs Alt2 Alignment</h4>
+              <div id="alignment-chart-3"></div>
+
+              <h4>Variants</h4>
+              <div id="variants-table" style="overflow-x: auto;"></div>
+
               <h4>Decomposition plot</h4>
               <div class="text-secondary">
                 <i class="fas fa-question"></i> Plot help:
@@ -209,18 +256,6 @@
                 >
               </div>
               <div id="decomposition-chart"></div>
-
-              <h4>Alt1 Alignment</h4>
-              <div id="alignment-chart-1"></div>
-
-              <h4>Alt2 Alignment</h4>
-              <div id="alignment-chart-2"></div>
-
-              <h4>Alt1 vs Alt2 Alignment</h4>
-              <div id="alignment-chart-3"></div>
-
-              <h4>Variants</h4>
-              <div id="variants-table" style="overflow-x: auto;"></div>
             </div>
           </div>
         </div>
