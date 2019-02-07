@@ -263,25 +263,28 @@
         <div class="tab-pane" id="help-tab">
           <h4>Application Description</h4>
           <p>
-            Indigo is a tool to deconvolute sanger trace files with the help of
-            a provided reference. Indigo calculates the sequence of two allels
-            based on the mixed traces read sequencing both allels at the same
-            time with one primer.
+            Indigo is a rapid SNV and InDel discovery method for Chromatogram traces
+	    obtained from Sanger sequencing of PCR products. The tool can separate
+	    a mutated and wildtype allele with the help of a provided reference.
+	    Indigo aligns both alleles against the reference genome, calls variants
+	    and annotates these variants with rs identifiers. Indigo also
+	    estimates the allelic fractions based on the mixed traces.
           </p>
           <h4>Accepted Input</h4>
           <p>
             The trace files can be provided in abi or scf trace format (*.scf,
-            *.abi, *.ab1, *.ab! and *.ab). The reference can be a genome selecte
-            from the dropdown menu, an uploaded as a fasta file (*.fa) or a
-            other trace file (*.scf, *.abi, *.ab1, *.ab! and *.ab).
+            *.abi, *.ab1, *.ab! and *.ab). The reference can be a genome selected
+            from the dropdown menu, an uploaded fasta file (*.fa) or another
+	    trace file (*.scf, *.abi, *.ab1, *.ab! and *.ab).
           </p>
           <h4>Sample Data</h4>
           <p>
-            The "Show Example" button loads an sample trace file
-            <a href="static/bin/sample.abi">(click to download file)</a> and
-            aligns it to a sample reference fasta file
-            <a href="static/bin/sample.fa">(click to download file)</a>.
-          </p>
+            The "Show Example" button loads an example trace file
+            <a href="static/bin/sample.abi">(click to download file)</a> that is
+	    then separated into two alleles. Both alleles are aligned to the reference,
+	    variants are called and annotated and results can be downloaded in PDF and
+	    VCF format.
+	  </p>
         </div>
       </div>
     </main>
