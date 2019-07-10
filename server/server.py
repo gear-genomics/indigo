@@ -134,5 +134,9 @@ def genomeind():
     return send_from_directory(os.path.join(INDIGOWS, "../fm"), "genomeindexindex.json"), 200
 
 
+@app.route('/api/v1/health', methods=['GET'])
+def health():
+    return jsonify(status="OK")
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3300, debug=True, threaded=True)
