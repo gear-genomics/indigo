@@ -3,11 +3,8 @@
 if [ $# -ne 5 ]
 then
     echo "**********************************************************************"
-    echo "Indigo"
-    echo "This program comes with ABSOLUTELY NO WARRANTY."
-    echo ""
-    echo "Indigo (Version: 0.1.1)"
-    echo "Contact: Tobias Rausch (rausch@embl.de)"
+    echo "Indigo: This program comes with ABSOLUTELY NO WARRANTY."
+    echo "Version: 0.1.2"
     echo "**********************************************************************"
     echo ""
     echo "Usage: $0 <experiment.ab1> <genome.fa.gz> <ltrim> <rtrim> <output prefix>"
@@ -24,9 +21,9 @@ set -e
 # Create Align Output
 if [[ $2 == *.fa.gz ]]
 then
-    tracy decompose -v -a ${2} -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}
+    tracy decompose -v -a ${2} -r ${2} -q ${3} -u ${4} -o ${5} ${1}
 else
-    tracy decompose -v -f align -g ${2} -l ${3} -r ${4} -o ${5} ${1}
+    tracy decompose -v -r ${2} -q ${3} -u ${4} -o ${5} ${1}
 fi
 
 # Plot results
