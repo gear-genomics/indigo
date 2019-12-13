@@ -23,6 +23,7 @@ exampleButton.addEventListener('click', showExample)
 const inputFile = document.getElementById('inputFile')
 const leftTrim = document.querySelector('#leftTrim')
 const rightTrim = document.querySelector('#rightTrim')
+const peakRatio = document.querySelector('#peakRatio')
 const targetFastaFile = document.getElementById('targetFileFasta')
 const targetChromatogramFile = document.getElementById('targetFileChromatogram')
 const targetGenomes = document.getElementById('target-genome')
@@ -43,11 +44,14 @@ let downloadUrl
 function run() {
   const lTrim = Number.parseInt(leftTrim.value, 10)
   const rTrim = Number.parseInt(rightTrim.value, 10)
+  const pRatio = Number.parseInt(peakRatio.value, 10)
+    
 
   const formData = new FormData()
   formData.append('queryFile', inputFile.files[0])
   formData.append('leftTrim', lTrim)
   formData.append('rightTrim', rTrim)
+  formData.append('peakRatio', pRatio)  
   const target = targetTabs.querySelector('a.active').id
 
   if (target.startsWith('target-genome')) {

@@ -56,6 +56,7 @@ def upload_file():
         # Default trim sizes
         ltrim = 50
         rtrim = 50
+        pRatio = 33
 
         # Experiment
         if 'showExample' in request.form.keys():
@@ -73,11 +74,14 @@ def upload_file():
                 sf, "indigo_" + uuidstr + "_" + secure_filename(fexp.filename))
             fexp.save(fexpname)
 
-            # Trim size
+            # Trim size and peak ratio
             if 'leftTrim' in request.form.keys():
                 ltrim = int(request.form['leftTrim'])
             if 'rightTrim' in request.form.keys():
                 rtrim = int(request.form['rightTrim'])
+            if 'peakRatio' in request.form.keys():
+                pRatio = int(request.form['peakRatio'])
+            actRatio = float(pRatio) / float(100)
 
             # Genome
             if 'genome' in request.form.keys():
@@ -113,8 +117,7 @@ def upload_file():
         with open(logfile, "w") as log:
             with open(errfile, "w") as err:
                 blexe = os.path.join(app.config['INDIGO'], "indigo.sh")
-                return_code = call([blexe, fexpname, genome, str(
-                    ltrim), str(rtrim), outfile], stdout=log, stderr=err)
+                return_code = call([blexe, fexpname, genome, str(ltrim), str(rtrim), str(actRatio), outfile], stdout=log, stderr=err)
         if return_code != 0:
             errInfo = "!"
             with open(errfile, "r") as err:
