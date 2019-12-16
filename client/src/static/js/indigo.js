@@ -40,18 +40,24 @@ const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
 let downloadUrl
 
+function updatePeakRatioValue() {
+  document.getElementById('peakRatioValue').innerText = peakRatio.value
+}
+
+updatePeakRatioValue()
+window.updatePeakRatioValue = updatePeakRatioValue
+
 // TODO client-side validation
 function run() {
   const lTrim = Number.parseInt(leftTrim.value, 10)
   const rTrim = Number.parseInt(rightTrim.value, 10)
   const pRatio = Number.parseInt(peakRatio.value, 10)
-    
 
   const formData = new FormData()
   formData.append('queryFile', inputFile.files[0])
   formData.append('leftTrim', lTrim)
   formData.append('rightTrim', rTrim)
-  formData.append('peakRatio', pRatio)  
+  formData.append('peakRatio', pRatio)
   const target = targetTabs.querySelector('a.active').id
 
   if (target.startsWith('target-genome')) {
