@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
+/>
     <title>Indigo: Rapid InDel Discovery in Sanger Chromatograms | GEAR</title>
     <meta
       name="description"
       content="SNV and InDel Discovery in Chromatogram traces obtained from Sanger sequencing of PCR products."
-    />
+/>
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
       integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
       crossorigin="anonymous"
-    />
+/>
     <link
       rel="stylesheet"
       href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-    />
-    <link rel="stylesheet" href="static/css/gear.css" />
+/>
+    <link rel="stylesheet" href="static/css/gear.css"/>
   </head>
 
   <body>
@@ -70,7 +70,7 @@
               Chromatogram file (<code>.scf</code>, <code>.abi</code>,
               <code>.ab1</code>, <code>.ab!</code> or <code>.ab</code>)
             </label>
-            <input type="file" class="form-control-file" id="inputFile" />
+            <input type="file" class="form-control-file" id="inputFile"/>
           </div>
           <div class="form-group">
             <label for="leftTrim">Left Chromatogram Trim Size</label>
@@ -81,7 +81,7 @@
               value="50"
               min="0"
               max="1000"
-            />
+/>
           </div>
           <div class="form-group">
             <label for="rightTrim">Right Chromatogram Trim Size</label>
@@ -92,20 +92,20 @@
               value="50"
               min="0"
               max="1000"
-            />
+/>
           </div>
           <div class="form-group">
-            <label for="peakRatio">Peak percentage to call bases</label>
+            <label for="peakRatio">Peak percentage to call bases (<span id="peakRatioValue"></span>)</label>
             <input
-              type="number"
+              type="range"
               class="form-control"
               id="peakRatio"
               value="33"
               min="0"
               max="100"
-            />
+              onchange="updatePeakRatioValue()"
+/>
           </div>
-	  
 
           <div class="form-group">
             <label>Align to</label>
@@ -143,14 +143,14 @@
                   type="file"
                   class="form-control-file"
                   id="targetFileFasta"
-                />
+/>
               </div>
               <div class="tab-pane fade" id="target-chromatogram">
                 <input
                   type="file"
                   class="form-control-file"
                   id="targetFileChromatogram"
-                />
+/>
               </div>
             </div>
           </div>
@@ -173,7 +173,8 @@
             be patient.
           </div>
           <div id="result-error" class="alert alert-danger d-none" role="alert">
-            <i class="fas fa-fire"></i> <span id="error-message"></span>
+            <i class="fas fa-fire"></i>
+            <span id="error-message"></span>
           </div>
           <div id="result-container" class="d-none">
             <div class="form-row align-items-center">
@@ -340,7 +341,7 @@
               class="footer-logo"
               alt="EMBL logo"
               src="static/img/embl.svg"
-            />
+/>
           </a>
         </div>
       </div>
