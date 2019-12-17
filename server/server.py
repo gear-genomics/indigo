@@ -57,6 +57,7 @@ def upload_file():
         ltrim = 50
         rtrim = 50
         pRatio = 33
+        actRatio = float(pRatio) / float(100)
 
         # Experiment
         if 'showExample' in request.form.keys():
