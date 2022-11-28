@@ -20,7 +20,7 @@ app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # maximum of 8MB
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf', 'abi', 'ab1', 'ab!', 'ab', 'pdf', 'fasta', 'fa', 'bcf'])
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf', 'abi', 'ab1', 'ab!', 'ab', 'pdf', 'fasta', 'fa', 'fas', 'bcf'])
 
 
 uuid_re = re.compile(
