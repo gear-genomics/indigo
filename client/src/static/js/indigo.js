@@ -102,13 +102,9 @@ function handleSuccess(data) {
   downloadUrl = data.url
   linkPdf.href = `${API_URL}/${downloadUrl}/pdf`
 
-  const traceData = convertTraceData(data)
-  renderTraceChart(traceChart, traceData, data.chartConfig)
+  traceChart.displayData(data)
 
-  renderDecompositionChart(decompositionChart, {
-    x: data.decomposition.x,
-    y: data.decomposition.y
-  })
+  decompositionChart.displayData(data)
 
   const alignmentCharactersPerLine = 80
 
@@ -131,13 +127,13 @@ function handleSuccess(data) {
     label: 'Ref'
   }
 
-  renderAlignmentChart(alignmentChart1, {
+  alignmentChart1.displayData({
     alt: alt1,
     ref: ref1,
     charactersPerLine: alignmentCharactersPerLine,
     score: data.align1score ? data.align1score : undefined
   })
-
+  
   const alt2 = {
     sequence: ungapped(data.alt2align),
     alignmentString: data.alt2align,
@@ -157,24 +153,31 @@ function handleSuccess(data) {
     label: 'Ref'
   }
 
-  renderAlignmentChart(alignmentChart2, {
+  alignmentChart2.displayData({
     alt: alt2,
     ref: ref2,
     charactersPerLine: alignmentCharactersPerLine,
     score: data.align2score ? data.align2score : undefined
   })
 
-  alt1.alignmentString = data.allele1align
-  alt2.alignmentString = data.allele2align
+  const alt3 = {
+    ...alt1,
+    alignmentString: data.allele1align,
+  }
 
-  renderAlignmentChart(alignmentChart3, {
-    alt: alt1,
-    ref: alt2,
+  const ref3 = {
+    ...alt2,
+    alignmentString: data.allele2align,
+  }
+  
+  alignmentChart3.displayData({
+    alt: alt3,
+    ref: ref3,
     charactersPerLine: alignmentCharactersPerLine,
     score: data.align3score ? data.align3score : undefined
   })
 
-  renderVariantsTable(variantsTable, data.variants)
+  variantsTable.displayData(data, traceChart)
 }
 
 function convertTraceData(data) {
@@ -210,217 +213,235 @@ function convertTraceData(data) {
   return ret
 }
 
-function renderTraceChart(container, data, chartConfig, title) {
-  const traces = []
-  const calls = []
+class TraceViewElement extends HTMLElement {
+  displayData(rawData, title) {
+    const data = convertTraceData(rawData)
+    const chartConfig = rawData.chartConfig
+    const traces = []
+    const calls = []
 
-  const colors = {
-    A: '#4daf4a',
-    C: '#377eb8',
-    G: '#212121',
-    T: '#e41a1c'
-  }
-
-  for (const base of ['A', 'C', 'G', 'T']) {
-    calls.push({
-      x: [],
-      y: [],
-      xaxis: 'x',
-      yaxis: 'y2',
-      name: base,
-      mode: 'markers',
-      hoverinfo: 'x+text',
-      text: [],
-      marker: {
-        color: colors[base],
-        size: 10
-      }
-    })
-    traces.push({
-      x: data.map(rec => rec.position),
-      y: data.map(rec => rec.peaks[base]),
-      name: base,
-      mode: 'lines',
-      line: {
-        color: colors[base]
-      }
-    })
-  }
-
-  const baseCalls = data.filter(rec => rec.calls !== null)
-  const baseToIndex = {
-    A: 0,
-    C: 1,
-    G: 2,
-    T: 3
-  }
-  for (const record of baseCalls) {
-    for (const base of record.calls.bases) {
-      const index = baseToIndex[base]
-      calls[index].x.push(record.position)
-      calls[index].y.push(base)
-      calls[index].text.push(`${base} (pos ${record.calls.pos})`)
+    const colors = {
+      A: '#4daf4a',
+      C: '#377eb8',
+      G: '#212121',
+      T: '#e41a1c'
     }
-  }
 
-  const combined = calls.concat(traces)
-
-  let xRange = [0, 500]
-  if (
-    chartConfig &&
-    chartConfig.x &&
-    chartConfig.x.axis &&
-    chartConfig.x.axis.range
-  ) {
-    xRange = chartConfig.x.axis.range
-  }
-
-  const layout = {
-    title: title || '',
-    yaxis: {
-      title: 'signal',
-      domain: [0, 0.6]
-    },
-    yaxis2: {
-      title: 'basecalls',
-      domain: [0.7, 1],
-      categoryorder: 'category descending'
-    },
-    xaxis: {
-      title: 'Trace signal position',
-      range: xRange,
-      zeroline: false
+    for (const base of ['A', 'C', 'G', 'T']) {
+      calls.push({
+        x: [],
+        y: [],
+        xaxis: 'x',
+        yaxis: 'y2',
+        name: base,
+        mode: 'markers',
+        hoverinfo: 'x+text',
+        text: [],
+        marker: {
+          color: colors[base],
+          size: 10
+        }
+      })
+      traces.push({
+        x: data.map(rec => rec.position),
+        y: data.map(rec => rec.peaks[base]),
+        name: base,
+        mode: 'lines',
+        line: {
+          color: colors[base]
+        }
+      })
     }
-  }
 
-  const config = {
-    displayModeBar: true
-  }
+    const baseCalls = data.filter(rec => rec.calls !== null)
+    const baseToIndex = {
+      A: 0,
+      C: 1,
+      G: 2,
+      T: 3
+    }
+    for (const record of baseCalls) {
+      for (const base of record.calls.bases) {
+        const index = baseToIndex[base]
+        calls[index].x.push(record.position)
+        calls[index].y.push(base)
+        calls[index].text.push(`${base} (pos ${record.calls.pos})`)
+      }
+    }
 
-  Plotly.newPlot(container, combined, layout, config)
+    const combined = calls.concat(traces)
+
+    let xRange = [0, 500]
+    if (
+      chartConfig &&
+      chartConfig.x &&
+      chartConfig.x.axis &&
+      chartConfig.x.axis.range
+    ) {
+      xRange = chartConfig.x.axis.range
+    }
+
+    const layout = {
+      title: title || '',
+      yaxis: {
+        title: 'signal',
+        domain: [0, 0.6]
+      },
+      yaxis2: {
+        title: 'basecalls',
+        domain: [0.7, 1],
+        categoryorder: 'category descending'
+      },
+      xaxis: {
+        title: 'Trace signal position',
+        range: xRange,
+        zeroline: false
+      }
+    }
+
+    const config = {
+      displayModeBar: true
+    }
+
+    Plotly.newPlot(this, combined, layout, config)
+  }
 }
 
-function renderDecompositionChart(container, data) {
-  const trace = {
-    x: data.x,
-    y: data.y,
-    mode: 'lines+markers'
-  }
+class DecompositionViewElement extends HTMLElement {
+  displayData(rawData) {
+    const data = rawData.decomposition || { x: [], y: [] }
 
-  const layout = {
-    title: data.title || '',
-    xaxis: {
-      title: 'InDel length (bp)',
-      zeroline: false
-    },
-    yaxis: {
-      title: 'Decomposition error'
+    const trace = {
+      x: data.x,
+      y: data.y,
+      mode: 'lines+markers'
     }
-  }
 
-  const config = {
-    displayModeBar: true
-  }
+    const layout = {
+      title: data.title || '',
+      xaxis: {
+        title: 'InDel length (bp)',
+        zeroline: false
+      },
+      yaxis: {
+        title: 'Decomposition error'
+      }
+    }
 
-  Plotly.newPlot(container, [trace], layout, config)
+    const config = {
+      displayModeBar: true
+    }
+
+    Plotly.newPlot(this, [trace], layout, config)
+  }
 }
 
-function renderAlignmentChart(container, data) {
-  const { alt, ref, charactersPerLine, score } = data
+class AlignmentViewElement extends HTMLElement {
+  displayData(data) {
+    if (!data) {
+      this.innerHTML = ''
+      return
+    }
 
-  const html = `<pre>
-${score ? `Alignment score: ${score}\n\n` : ''}${alignmentHtml(
-    alt,
-    ref,
-    charactersPerLine
-  )}
+    const { alt, ref, charactersPerLine, score } = data
+
+    const html = `<pre>
+  ${score ? `Alignment score: ${score}\n\n` : ''}${this.#alignmentHtml(
+      alt,
+      ref,
+      charactersPerLine
+    )}
 </pre>`
 
-  container.innerHTML = html
-}
-
-function alignmentHtml(alt, ref, n) {
-  const altSequenceChunked = chunked(alt.sequence, n + 20).join('\n')
-  const refSequenceChunked = chunked(ref.sequence, n + 20).join('\n')
-
-  const labelWidth = Math.max(alt.label.length, ref.label.length)
-
-  const numberWidth = Math.max(
-    String(alt.sequence.length).length,
-    String(ref.startPosition + ref.sequence.length - 1).length
-  )
-
-  const alignmentChunked = chunkedAlignment(
-    alt.alignmentString,
-    ref.alignmentString,
-    n
-  )
-
-  let pos1 = 1
-  let pos2 = ref.isReverseComplement
-    ? ref.startPosition + ref.sequence.length - 1
-    : ref.startPosition
-
-  let alignmentChunkedFormatted = ''
-  alignmentChunked.forEach(([seq1, matches, seq2]) => {
-    alignmentChunkedFormatted += `${alt.label.padStart(labelWidth)}  ${String(
-      pos1
-    ).padStart(numberWidth)} ${seq1}\n${' '.repeat(
-      labelWidth + numberWidth + 2
-    )} ${matches}\n${ref.label.padStart(labelWidth)}  ${String(pos2).padStart(
-      numberWidth
-    )} ${seq2}\n\n`
-    pos1 += ungapped(seq1).length
-    if (ref.isReverseComplement) {
-      pos2 -= ungapped(seq2).length
-    } else {
-      pos2 += ungapped(seq2).length
-    }
-  })
-
-  return `>${alt.chromosome}:${alt.startPosition}-${alt.startPosition +
-    alt.sequence.length -
-    1}${alt.isReverseComplement ? '_reverse' : '_forward'}${
-    alt.alleleFraction
-      ? ` (Estimated allelic fraction: ${alt.alleleFraction})`
-      : ''
+    this.innerHTML = html
   }
+
+  #alignmentHtml(alt, ref, n) {
+    const altSequenceChunked = this.#chunked(alt.sequence, n + 20).join('\n')
+    const refSequenceChunked = this.#chunked(ref.sequence, n + 20).join('\n')
+
+    const labelWidth = Math.max(alt.label.length, ref.label.length)
+
+    const numberWidth = Math.max(
+      String(alt.sequence.length).length,
+      String(ref.startPosition + ref.sequence.length - 1).length
+    )
+
+    const alignmentChunked = this.#chunkedAlignment(
+      alt.alignmentString,
+      ref.alignmentString,
+      n
+    )
+
+    let pos1 = 1
+    let pos2 = ref.isReverseComplement
+      ? ref.startPosition + ref.sequence.length - 1
+      : ref.startPosition
+
+    let alignmentChunkedFormatted = ''
+    alignmentChunked.forEach(([seq1, matches, seq2]) => {
+      alignmentChunkedFormatted += `${alt.label.padStart(labelWidth)}  ${String(
+        pos1
+      ).padStart(numberWidth)} ${seq1}\n${' '.repeat(
+        labelWidth + numberWidth + 2
+      )} ${matches}\n${ref.label.padStart(labelWidth)}  ${String(pos2).padStart(
+        numberWidth
+      )} ${seq2}\n\n`
+      pos1 += ungapped(seq1).length
+      if (ref.isReverseComplement) {
+        pos2 -= ungapped(seq2).length
+      } else {
+        pos2 += ungapped(seq2).length
+      }
+    })
+
+    return `>${alt.chromosome}:${alt.startPosition}-${alt.startPosition +
+      alt.sequence.length -
+      1}${alt.isReverseComplement ? '_reverse' : '_forward'}${
+      alt.alleleFraction
+        ? ` (Estimated allelic fraction: ${alt.alleleFraction})`
+        : ''
+    }
 ${altSequenceChunked}
 
 >${ref.chromosome}:${ref.startPosition}-${ref.startPosition +
-    ref.sequence.length -
-    1}${ref.isReverseComplement ? '_reverse' : '_forward'}${
-    ref.alleleFraction
-      ? ` (Estimated allelic fraction: ${ref.alleleFraction})`
-      : ''
-  }
+      ref.sequence.length -
+      1}${ref.isReverseComplement ? '_reverse' : '_forward'}${
+      ref.alleleFraction
+        ? ` (Estimated allelic fraction: ${ref.alleleFraction})`
+        : ''
+    }
 ${refSequenceChunked}
 
 ${alignmentChunkedFormatted}`
-}
-
-function chunked(seq, n) {
-  const ret = []
-  for (let i = 0; i < seq.length; i += n) {
-    ret.push(seq.slice(i, i + n))
   }
-  return ret
-}
 
-function chunkedAlignment(str1, str2, n) {
-  const ret = []
-  for (const [line1, line2] of zip(chunked(str1, n), chunked(str2, n))) {
-    let matchString = ''
-    for (const [char1, char2] of zip(line1, line2)) {
-      matchString += char1 === char2 ? '|' : ' '
+  #chunked(seq, n) {
+    const ret = []
+    for (let i = 0; i < seq.length; i += n) {
+      ret.push(seq.slice(i, i + n))
     }
-    ret.push([line1, matchString, line2])
+    return ret
   }
-  return ret
+
+  #chunkedAlignment(str1, str2, n) {
+    const ret = []
+    for (const [line1, line2] of zip(this.#chunked(str1, n), this.#chunked(str2, n))) {
+      let matchString = ''
+      for (const [char1, char2] of zip(line1, line2)) {
+        matchString += char1 === char2 ? '|' : ' '
+      }
+      ret.push([line1, matchString, line2])
+    }
+    return ret
+  }
 }
 
-function renderVariantsTable(container, variants) {
-  const html = `
+class VariantsTableElement extends HTMLElement {
+  displayData(data, traceChart) {
+    const variants = data.variants
+
+    const html = `
     <table class="table table-sm table-striped table-hover">
       <thead>
         <tr>
@@ -452,17 +473,23 @@ function renderVariantsTable(container, variants) {
       </tbody>
     </table>
   `
-  container.innerHTML = html
+    this.innerHTML = html
 
-  function showVariantInViewer(index) {
-    Plotly.relayout(traceChart, {
-      'xaxis.range': variants.xranges[index]
-    })
-    traceChart.scrollIntoView()
+    function showVariantInViewer(index) {
+      Plotly.relayout(traceChart, {
+        'xaxis.range': variants.xranges[index]
+      })
+      traceChart.scrollIntoView()
+    }
+
+    window.showVariantInViewer = showVariantInViewer
   }
-
-  window.showVariantInViewer = showVariantInViewer
 }
+
+window.customElements.define('trace-view', TraceViewElement)
+window.customElements.define('alignment-view', AlignmentViewElement)
+window.customElements.define('decomposition-view', DecompositionViewElement)
+window.customElements.define('variants-view', VariantsTableElement)
 
 function zip() {
   const ret = []
