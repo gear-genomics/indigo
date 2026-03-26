@@ -440,7 +440,18 @@ ${alignmentChunkedFormatted}`
 class VariantsTableElement extends HTMLElement {
   displayData(data, traceChart) {
     const variants = data.variants
-
+      
+    this._showVariantInViewer = function(index) {
+      Plotly.relayout(traceChart, {
+        'xaxis.range': variants.xranges[index]
+      })
+      traceChart.scrollIntoView()
+    }
+    const elementId = this.id || ('variants-view-' + Math.random().toString(36).slice(2))
+    this.id = elementId
+    window.__variantViewers = window.__variantViewers || {}
+    window.__variantViewers[elementId] = this._showVariantInViewer
+      
     const html = `
     <table class="table table-sm table-striped table-hover">
       <thead>
@@ -459,7 +470,7 @@ class VariantsTableElement extends HTMLElement {
               <i
                 class="fas fa-chart-line"
                 style="cursor: pointer"
-                onclick="showVariantInViewer(${i})"
+                onclick="window.__variantViewers['${elementId}'](${i})"
               ></i>
             </td>
             ${row
@@ -474,15 +485,6 @@ class VariantsTableElement extends HTMLElement {
     </table>
   `
     this.innerHTML = html
-
-    function showVariantInViewer(index) {
-      Plotly.relayout(traceChart, {
-        'xaxis.range': variants.xranges[index]
-      })
-      traceChart.scrollIntoView()
-    }
-
-    window.showVariantInViewer = showVariantInViewer
   }
 }
 
