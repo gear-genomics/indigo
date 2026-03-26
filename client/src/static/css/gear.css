@@ -84,3 +84,10 @@ a.plain:hover {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+trace-view,
+decomposition-view,
+alignment-view,
+variants-view {
+  display: block;
+}

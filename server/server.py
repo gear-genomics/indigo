@@ -39,7 +39,9 @@ def download(uuid, ext):
             sf = os.path.join(app.config['UPLOAD_FOLDER'], uuid[0:2])
             if os.path.exists(sf):
                 if os.path.isfile(os.path.join(sf, filename)):
-                    return send_file(os.path.join(sf, filename), attachment_filename=filename)
+                    ## Old Flask
+                    #return send_file(os.path.join(sf, filename), attachment_filename=filename)
+                    return send_file(os.path.join(sf, filename), download_name=filename, as_attachment=True)
     return "File does not exist!"
 
 
