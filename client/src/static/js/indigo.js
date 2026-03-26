@@ -346,7 +346,7 @@ class AlignmentViewElement extends HTMLElement {
     const { alt, ref, charactersPerLine, score } = data
 
     const html = `<pre>
-  ${score ? `Alignment score: ${score}\n\n` : ''}${this.#alignmentHtml(
+${score ? `Alignment score: ${score}\n\n` : ''}${this.#alignmentHtml(
       alt,
       ref,
       charactersPerLine
